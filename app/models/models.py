@@ -9,21 +9,21 @@ from app.lib.database import Base
 
 
 class ServiceStatus(str, enum.Enum):
-    PAUSED = "paused"
-    ACTIVE = "active"
-    INACTIVE = "inactive"
+    PAUSED = "PAUSED"
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
 
 
 class WebhookStatus(str, enum.Enum):
-    VERIFIED = "verified"
-    PENDING = "pending"
-    FAILED = "failed"
+    VERIFIED = "VERIFIED"
+    PENDING = "PENDING"
+    FAILED = "FAILED"
 
 
 class DocumentStatus(str, enum.Enum):
-    PROCESSING = "processing"
-    INDEXED = "indexed"
-    FAILED = "failed"
+    PROCESSING = "PROCESSING"
+    INDEXED = "INDEXED"
+    FAILED = "FAILED"
 
 
 class User(Base):

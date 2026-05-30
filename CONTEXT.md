@@ -1,4 +1,4 @@
-# Project Context — Bizzz Backend
+# Project Context — SalesVai Backend
 
 This file summarizes the backend flow, current store-centric naming, and how RAG is implemented so other conversations and contributors can pick up context quickly.
 

@@ -33,7 +33,7 @@ async def login_page():
 """
     script = """
 <script>
-if (getToken()) { window.location.href = "/dashboard"; }
+ensureSessionOrRedirect().then((session) => { if (session) { window.location.href = "/dashboard"; } }).catch((error) => { showError(error.message || "Session check failed"); });
 document.getElementById("login-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(event.target);
@@ -83,7 +83,7 @@ async def register_page():
 """
     script = """
 <script>
-if (getToken()) { window.location.href = "/dashboard"; }
+ensureSessionOrRedirect().then((session) => { if (session) { window.location.href = "/dashboard"; } }).catch((error) => { showError(error.message || "Session check failed"); });
 document.getElementById("register-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(event.target);

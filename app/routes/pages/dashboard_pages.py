@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .common import render_page, fetchJson
+from .common import render_page
 
 router = APIRouter()
 
@@ -17,6 +17,7 @@ async def dashboard():
 <p class="muted">Your stores live here. Open one to manage connections and store settings.</p>
 <div class="actions">
   <a class="button" href="/create-store">Create store</a>
+  <button type="button" class="secondary" onclick="logout()">Logout</button>
 </div>
 <section>
   <h2>Stores</h2>
@@ -26,9 +27,8 @@ async def dashboard():
 """
     script = """
 <script>
-if (!requireTokenOrRedirect()) { throw new Error("Missing token"); }
+ensureSessionOrRedirect().then((session) => { if (!session) { return; } loadDashboard(); }).catch((error) => { showError(error.message || "Session check failed"); });
 async function loadDashboard(){ try{ const stores = await fetchStores(); renderStoreCards("store-list", stores); setMessage("dashboard-message", stores.length?`Loaded ${stores.length} store(s).`:"No stores yet."); }catch(e){ setMessage("dashboard-message", e.message||"Could not load stores."); } }
-loadDashboard();
 </script>
 """
     return render_page("Dashboard", body, script)
@@ -72,7 +72,7 @@ async def create_store_page():
 """
     script = """
 <script>
-if (!requireTokenOrRedirect()) { throw new Error("Missing token"); }
+ensureSessionOrRedirect().then((session) => { if (!session) { return; } }).catch((error) => { showError(error.message || "Session check failed"); });
 document.getElementById("create-store-form").addEventListener("submit", async (event)=>{ event.preventDefault(); const form=new FormData(event.target); const payload={ name: form.get("name"), description: form.get("description")||null, products_items: parseJsonInput(form.get("products_items"), []), tone: form.get("tone")||null, personality_prompt: form.get("personality_prompt")||null, welcome_message: form.get("welcome_message")||null, language: form.get("language")||null, }; setMessage("create-store-message","Creating store..."); try{ const store=await fetchJson("/api/store/",{ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); setStoreId(store.id); window.location.href=`/stores/${store.id}`; }catch(error){ setMessage("create-store-message", error.message||"Store creation failed"); } });
 </script>
 """

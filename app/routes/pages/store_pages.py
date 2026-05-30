@@ -12,6 +12,7 @@ async def store_detail(store_id: str):
 <div class="actions">
   <a class="button secondary" href="/dashboard">Back to dashboard</a>
   <a class="button secondary" href="/orders">Orders placeholder</a>
+  <button type="button" class="secondary" onclick="logout()">Logout</button>
 </div>
 
 <section>
@@ -108,8 +109,8 @@ async def store_detail(store_id: str):
 """
     script = f"""
 <script>
-if (!requireTokenOrRedirect()) {{ throw new Error("Missing token"); }}
 setStoreId("{store_id}");
+ensureSessionOrRedirect().then((session) => {{ if (!session) {{ return; }} loadStore(); }}).catch((error) => {{ showError(error.message || "Session check failed"); }});
 async function loadStore() {{ try {{ const store = await fetchJson(`/api/store/{store_id}`); document.getElementById("store-summary").textContent = `${{store.name}} - ${{store.description || "No description yet."}}`; const settingsForm = document.getElementById("store-settings-form"); settingsForm.elements.name.value = store.name || ""; settingsForm.elements.description.value = store.description || ""; settingsForm.elements.tone.value = store.tone || ""; settingsForm.elements.personality_prompt.value = store.personality_prompt || ""; settingsForm.elements.welcome_message.value = store.welcome_message || ""; settingsForm.elements.language.value = store.language || "english"; settingsForm.elements.products_items.value = JSON.stringify(store.products_items || [], null, 2); }} catch (error) {{ setMessage("store-summary", error.message || "Could not load store"); }} }}
 document.getElementById("store-settings-form").addEventListener("submit", async (event) => {{ event.preventDefault(); const form = new FormData(event.target); const payload = {{ name: form.get("name"), description: form.get("description") || null, products_items: parseJsonInput(form.get("products_items"), []), tone: form.get("tone") || null, personality_prompt: form.get("personality_prompt") || null, welcome_message: form.get("welcome_message") || null, language: form.get("language") || null, }}; setMessage("store-settings-message", "Saving store..."); try {{ await fetchJson(`/api/store/{store_id}`, {{ method: "PUT", headers: {{ "Content-Type": "application/json" }}, body: JSON.stringify(payload), }}); setMessage("store-settings-message", "Store saved."); }} catch (error) {{ setMessage("store-settings-message", error.message || "Could not save store"); }} }});
 document.querySelectorAll(".connection-form").forEach((form) => {{ form.addEventListener("submit", async (event) => {{ event.preventDefault(); const platform = form.dataset.platform; const formData = new FormData(form); const payload = Object.fromEntries(formData.entries()); setMessage("connection-message", `Saving ${{platform}}...`); try {{ await fetchJson(`/api/setup/${{platform}}/{store_id}/api-key`, {{ method: "POST", headers: {{ "Content-Type": "application/json" }}, body: JSON.stringify(payload), }}); setMessage("connection-message", `${{platform}} saved.`); }} catch (error) {{ setMessage("connection-message", error.message || `Saving ${{platform}} failed`); }} }}); }});
@@ -127,12 +128,13 @@ async def connections():
 <p class="muted">Open a store from the dashboard, then manage its platform connections here.</p>
 <div class="actions">
   <a class="button" href="/dashboard">Go to dashboard</a>
+  <button type="button" class="secondary" onclick="logout()">Logout</button>
 </div>
 <p class="small muted">This page will jump to the last selected store if one is saved.</p>
 """
     script = """
 <script>
-if (!requireTokenOrRedirect()) { throw new Error("Missing token"); }
+ensureSessionOrRedirect().then((session) => {{ if (!session) {{ return; }} }}).catch((error) => {{ showError(error.message || "Session check failed"); }});
 const storeId = getStoreId();
 if (storeId) { window.location.href = `/stores/${storeId}`; }
 </script>
@@ -147,6 +149,7 @@ async def orders():
 <p class="muted">Placeholder for now. The order flow can be added later in the separate frontend.</p>
 <div class="actions">
   <a class="button" href="/dashboard">Back to dashboard</a>
+  <button type="button" class="secondary" onclick="logout()">Logout</button>
 </div>
 """
     return render_page("Orders", body)

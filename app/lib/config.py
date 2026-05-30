@@ -1,5 +1,36 @@
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from typing import List
+
+
+def load_dotenv_tolerant(path: str = ".env") -> None:
+    env_path = Path(path)
+    if not env_path.is_file():
+        return
+
+    for raw_line in env_path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export "):].strip()
+        if "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if not key:
+            continue
+
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+
+        os.environ.setdefault(key, value)
+
+
+load_dotenv_tolerant()
 
 
 class Settings(BaseSettings):
@@ -37,7 +68,6 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
     
     class Config:
-        env_file = ".env"
         case_sensitive = True
         extra = "ignore"
 
