@@ -7,7 +7,22 @@ router = APIRouter()
 @router.get("/", response_class=None)
 async def _root_redirect():
     # root is defined in main pages package; keep this placeholder minimal
-    return render_page("Bizzz Backend", "<p>Use /login or /register</p>")
+    body = """
+<section>
+  <h1>Bizzz Backend</h1>
+  <p class="muted">Use /login or /register</p>
+  <div class="actions">
+    <a class="button" href="/login">Sign in</a>
+    <a class="button secondary" href="/register">Create account</a>
+  </div>
+</section>
+"""
+    script = """
+<script>
+ensureSessionOrRedirect().then((session) => { if (session) { window.location.href = "/dashboard"; } }).catch((error) => { showError(error.message || "Session check failed"); });
+</script>
+"""
+    return render_page("Bizzz Backend", body, script)
 
 
 @router.get("/login", response_class=None)
