@@ -12,7 +12,7 @@ This file summarizes the backend flow, where Chroma is used, and how RAG is impl
 
 ## RAG (Retrieval-Augmented Generation)
 - Implemented in `app/lib/rag.py` via the `RAGManager` class.
-- Embeddings: created with `GoogleGenerativeAIEmbeddings` using `settings.GEMINI_EMBEDDING_MODEL` and `settings.GEMINI_API_KEY`.
+- Embeddings: created with FastEmbed `TextEmbedding` using `intfloat/multilingual-e5-small`.
 - What is embedded:
   - `Business.description`
   - Each entry in `Business.products_items` (product name, description, price)

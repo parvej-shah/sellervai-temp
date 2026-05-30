@@ -18,14 +18,18 @@ itsdangerous==2.1.2
 cryptography==42.0.0
 argon2-cffi==23.1.0
 
+
 # AI and LangChain
-langchain>=0.3.0
-langchain-openai>=0.3.0
-langchain-huggingface>=0.1.0
-langchain-community>=0.3.0
-langgraph>=0.2.0
+langchain>=0.3.0,<0.4.0
+langchain-openai>=0.3.0,<0.4.0
+langchain-community>=0.3.0,<0.4.0
+langgraph>=0.2.0,<0.3.0
+langchain-core>=0.3.0,<0.4.0
+langsmith>=0.2.0,<0.3.0
+fastembed>=0.4.0
 sentence-transformers>=3.0.0
 chromadb==0.4.22
+
 
 # Document Processing
 pypdf>=4.0.0

@@ -2,7 +2,7 @@
 
 # Bizzz Backend Setup Script
 
-echo "🚀 Setting up Bizzz Backend..."
+echo "🚀 Setting up SalesVai Backend..."
 
 # Check if virtual environment is activated
 if [[ -z "$VIRTUAL_ENV" ]]; then

@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     DEEPSEEK_MODEL: str = "deepseek-chat"
     DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
     
-    # Embeddings (local HuggingFace model — lightweight, no API key needed)
-    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    # Embeddings (local FastEmbed model — lightweight, no API key needed)
+    EMBEDDING_MODEL: str = "intfloat/multilingual-e5-small"
     
     # WhatsApp (Global Verify Token)
     WHATSAPP_VERIFY_TOKEN: str = ""

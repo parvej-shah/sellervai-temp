@@ -1,22 +1,56 @@
 import os
 import logging
 from typing import List, Optional
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_core.embeddings import Embeddings
 from langchain_community.vectorstores import Chroma
 from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from fastembed import TextEmbedding
+from fastembed.common.model_description import PoolingType, ModelSource
 from chromadb.config import Settings as ChromaSettings
 from app.lib.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Initialize local HuggingFace Embeddings (lightweight, no API key needed)
-# all-MiniLM-L6-v2: ~80MB, very fast, good quality for semantic search
-embeddings = HuggingFaceEmbeddings(
-    model_name=settings.EMBEDDING_MODEL,
-    model_kwargs={"device": "cpu"},
-    encode_kwargs={"normalize_embeddings": True},
+TextEmbedding.add_custom_model(
+    model=settings.EMBEDDING_MODEL,
+    pooling=PoolingType.MEAN,
+    normalization=True,
+    sources=ModelSource(hf=settings.EMBEDDING_MODEL),
+    dim=384,
+    model_file="onnx/model.onnx",
 )
+
+
+class FastEmbedEmbeddings(Embeddings):
+    def __init__(self):
+        self._model = TextEmbedding(settings.EMBEDDING_MODEL)
+
+    @staticmethod
+    def _prepare_text(text: str, prefix: str) -> str:
+        text = text.strip()
+        if not text:
+            return text
+        return text if text.startswith(prefix) else f"{prefix}{text}"
+
+    @staticmethod
+    def _to_vector(embedding) -> List[float]:
+        if hasattr(embedding, "tolist"):
+            return embedding.tolist()
+        return list(embedding)
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        passages = [self._prepare_text(text, "passage: ") for text in texts]
+        return [self._to_vector(embedding) for embedding in self._model.embed(passages)]
+
+    def embed_query(self, text: str) -> List[float]:
+        query = self._prepare_text(text, "query: ")
+        embedding = next(iter(self._model.embed([query])))
+        return self._to_vector(embedding)
+
+
+# Initialize local FastEmbed embeddings (lightweight, no API key needed)
+embeddings = FastEmbedEmbeddings()
 
 # Text splitter for chunking documents
 text_splitter = RecursiveCharacterTextSplitter(
