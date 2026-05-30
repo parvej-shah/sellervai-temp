@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import logging
 
 from app.lib.config import settings
-from app.routes import auth, store, users, chat, setup, webhooks, documents
+from app.routes import auth, store, users, chat, setup, webhooks, documents, pages
 
 # Configure logging
 logging.basicConfig(
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Create FastAPI app
 app = FastAPI(
     title="Bizzz Backend API",
-    description="Multi-platform messaging integration with AI-powered chat (DeepSeek + LangGraph)",
+    description="Multi-platform messaging integration with AI-powered chat (DeepSeek + RAG)",
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -33,6 +33,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(pages.router)
 app.include_router(auth.router)
 app.include_router(store.router)
 app.include_router(documents.router)
@@ -40,17 +41,6 @@ app.include_router(users.router)
 app.include_router(chat.router)
 app.include_router(setup.router)
 app.include_router(webhooks.router)
-
-
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {
-        "message": "Bizzz Backend API",
-        "version": "2.0.0",
-        "ai": "DeepSeek",
-        "docs": "/docs"
-    }
 
 
 @app.get("/health")
