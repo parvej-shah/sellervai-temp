@@ -8,6 +8,7 @@ Multi-platform messaging integration with AI-powered chat capabilities using Fas
 - 💬 **Multi-Platform Integration** - WhatsApp, Telegram, Messenger, Instagram, Facebook Pages
 - 🤖 **AI-Powered Chat** - LangChain with Google Gemini for intelligent responses
 - 📊 **Database Management** - PostgreSQL with SQLAlchemy and Alembic migrations
+- 🧠 **Vector Search** - PGVector-backed RAG with FastEmbed embeddings
 - 🔄 **Webhook Handling** - Automated message processing and responses
 - 📡 **Streaming Chat** - Real-time AI responses
 - 🛠️ **RAG & Tools** - Context-aware responses with database queries
@@ -17,9 +18,11 @@ Multi-platform messaging integration with AI-powered chat capabilities using Fas
 - **FastAPI** - Modern, fast web framework
 - **SQLAlchemy** - Async ORM
 - **PostgreSQL** - Primary database
+- **PGVector** - Vector storage for retrieval-augmented generation
 - **Alembic** - Database migrations
 - **LangChain** - AI orchestration
-- **Google Gemini** - LLM provider
+- **FastEmbed** - Lightweight local embeddings
+- **DeepSeek** - LLM provider
 - **OAuth 2.0** - Authentication
 
 ## Project Structure
@@ -37,7 +40,7 @@ bizzz-backend/
 │   ├── ai_service.py        # AI/LangChain service
 │   ├── routes/
 │   │   ├── auth.py          # Authentication endpoints
-│   │   ├── business.py      # Business CRUD
+│   │   ├── store.py         # Store CRUD
 │   │   ├── users.py         # User CRUD
 │   │   ├── chat.py          # Chat endpoints
 │   │   ├── setup.py         # Platform setup
@@ -122,12 +125,12 @@ Once the server is running, visit:
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/session` - Get user profile
 
-### Business (`/api/business/`)
-- `GET /api/business/` - List businesses
-- `POST /api/business/` - Create business
-- `GET /api/business/{id}` - Get business
-- `PUT /api/business/{id}` - Update business
-- `DELETE /api/business/{id}` - Delete business
+### Store (`/api/store/`)
+- `GET /api/store/` - List stores
+- `POST /api/store/` - Create store
+- `GET /api/store/{id}` - Get store
+- `PUT /api/store/{id}` - Update store
+- `DELETE /api/store/{id}` - Delete store
 
 ### Users (`/api/users/`)
 - `GET /api/users/` - List users
@@ -140,13 +143,13 @@ Once the server is running, visit:
 - `POST /api/chat/stream` - Stream chat responses
 
 ### Setup (`/api/setup/`)
-- `POST /api/setup/{platform}/{business_id}/api-key` - Configure API key
-- `POST /api/setup/{platform}/{business_id}/webhook` - Setup webhook
+- `POST /api/setup/{platform}/{store_id}/api-key` - Configure API key
+- `POST /api/setup/{platform}/{store_id}/webhook` - Setup webhook
 
 Platforms: `messenger`, `whatsapp`, `telegram`, `instagram`
 
 ### Webhooks (`/api/webhooks/`)
-- `GET/POST /api/webhooks/{platform}/{business_id}` - Platform webhooks
+- `GET/POST /api/webhooks/{platform}/{store_id}` - Platform webhooks
 
 ## Database Migrations
 
@@ -169,26 +172,26 @@ alembic history
 The AI service includes:
 - **Product queries** - "How many products do you have?"
 - **Product search** - "Show me products with 'shirt'"
-- **Business info** - "Tell me about the business"
+- **Store info** - "Tell me about the store"
 - **Streaming responses** - Real-time chat
 - **Context awareness** - RAG-based responses
 
 ## Webhook Configuration
 
 ### Messenger/Instagram
-1. Configure API key via `/api/setup/messenger/{business_id}/api-key`
+1. Configure API key via `/api/setup/messenger/{store_id}/api-key`
 2. Set webhook URL in Facebook Developer Console
-3. Verify webhook via `/api/setup/messenger/{business_id}/webhook`
+3. Verify webhook via `/api/setup/messenger/{store_id}/webhook`
 
 ### WhatsApp
-1. Configure API key via `/api/setup/whatsapp/{business_id}/api-key`
+1. Configure API key via `/api/setup/whatsapp/{store_id}/api-key`
 2. Set webhook URL in WhatsApp Business API settings
-3. Verify webhook via `/api/setup/whatsapp/{business_id}/webhook`
+3. Verify webhook via `/api/setup/whatsapp/{store_id}/webhook`
 
 ### Telegram
-1. Configure bot token via `/api/setup/telegram/{business_id}/api-key`
+1. Configure bot token via `/api/setup/telegram/{store_id}/api-key`
 2. Set webhook using Telegram Bot API
-3. Verify webhook via `/api/setup/telegram/{business_id}/webhook`
+3. Verify webhook via `/api/setup/telegram/{store_id}/webhook`
 
 ## Security
 

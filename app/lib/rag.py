@@ -1,56 +1,69 @@
 import os
 import logging
+from functools import lru_cache
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from typing import List, Optional
-from langchain_core.embeddings import Embeddings
-from langchain_community.vectorstores import Chroma
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from fastembed import TextEmbedding
-from fastembed.common.model_description import PoolingType, ModelSource
-from chromadb.config import Settings as ChromaSettings
 from app.lib.config import settings
 
 logger = logging.getLogger(__name__)
 
-TextEmbedding.add_custom_model(
-    model=settings.EMBEDDING_MODEL,
-    pooling=PoolingType.MEAN,
-    normalization=True,
-    sources=ModelSource(hf=settings.EMBEDDING_MODEL),
-    dim=384,
-    model_file="onnx/model.onnx",
-)
+
+def _sync_database_url(url: str) -> str:
+    """Convert the async application database URL to a sync PGVector connection string."""
+    if not url:
+        return url
+
+    parsed = urlparse(url)
+    scheme = parsed.scheme
+    if scheme.endswith("+asyncpg"):
+        scheme = scheme.replace("+asyncpg", "+psycopg2")
+    elif scheme == "postgresql":
+        scheme = "postgresql+psycopg2"
+
+    query = parse_qs(parsed.query)
+    incompatible_params = [
+        "sslmode",
+        "sslrootcert",
+        "sslcert",
+        "sslkey",
+        "target_session_attrs",
+        "channel_binding",
+        "application_name",
+        "connect_timeout",
+    ]
+
+    for param in incompatible_params:
+        query.pop(param, None)
+
+    return urlunparse(parsed._replace(scheme=scheme, query=urlencode(query, doseq=True)))
 
 
-class FastEmbedEmbeddings(Embeddings):
-    def __init__(self):
-        self._model = TextEmbedding(settings.EMBEDDING_MODEL)
+@lru_cache(maxsize=1)
+def _get_embeddings():
+    """Lazy-load the community FastEmbed embeddings so app startup stays lightweight."""
+    try:
+        from langchain_community.embeddings import FastEmbedEmbeddings
+    except ImportError as exc:
+        raise ImportError(
+            "FastEmbedEmbeddings is unavailable. Install a compatible langchain-community "
+            "package together with fastembed."
+        ) from exc
 
-    @staticmethod
-    def _prepare_text(text: str, prefix: str) -> str:
-        text = text.strip()
-        if not text:
-            return text
-        return text if text.startswith(prefix) else f"{prefix}{text}"
-
-    @staticmethod
-    def _to_vector(embedding) -> List[float]:
-        if hasattr(embedding, "tolist"):
-            return embedding.tolist()
-        return list(embedding)
-
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        passages = [self._prepare_text(text, "passage: ") for text in texts]
-        return [self._to_vector(embedding) for embedding in self._model.embed(passages)]
-
-    def embed_query(self, text: str) -> List[float]:
-        query = self._prepare_text(text, "query: ")
-        embedding = next(iter(self._model.embed([query])))
-        return self._to_vector(embedding)
+    return FastEmbedEmbeddings(model_name=settings.EMBEDDING_MODEL)
 
 
-# Initialize local FastEmbed embeddings (lightweight, no API key needed)
-embeddings = FastEmbedEmbeddings()
+def _get_vector_store_class():
+    """Lazy-load the community PGVector store."""
+    try:
+        from langchain_community.vectorstores import PGVector
+    except ImportError as exc:
+        raise ImportError(
+            "PGVector is unavailable. Install a compatible langchain-community package."
+        ) from exc
+
+    return PGVector
 
 # Text splitter for chunking documents
 text_splitter = RecursiveCharacterTextSplitter(
@@ -143,20 +156,21 @@ class RAGManager:
     
     def __init__(self, store_id: str):
         self.store_id = store_id
-        self.persist_directory = f"./chroma_db/{store_id}"
-        
-        # Initialize Vector Store
-        self.vector_store = Chroma(
-            persist_directory=self.persist_directory,
-            embedding_function=embeddings,
-            collection_name=f"store_{store_id.replace('-', '_')}",
-            client_settings=ChromaSettings(anonymized_telemetry=False)
+        self.collection_name = f"store_{store_id.replace('-', '_')}"
+        self.connection_string = _sync_database_url(settings.DATABASE_URL)
+        self.vector_store = _get_vector_store_class()(
+            connection_string=self.connection_string,
+            embedding_function=_get_embeddings(),
+            collection_name=self.collection_name,
+            pre_delete_collection=False,
         )
 
     async def is_indexed(self) -> bool:
         """Check if the vector store already has data."""
         try:
-            return self.vector_store._collection.count() > 0
+            with self.vector_store._make_session() as session:
+                collection = self.vector_store.get_collection(session)
+                return bool(collection and collection.embeddings)
         except Exception:
             return False
 
@@ -192,7 +206,6 @@ class RAGManager:
             # Chunk if needed and add
             chunks = text_splitter.split_documents(documents)
             self.vector_store.add_documents(chunks)
-            self.vector_store.persist()
             logger.info(f"Indexed {len(chunks)} chunks for store {self.store_id}")
 
     async def index_file(self, file_path: str, filename: str) -> int:
@@ -217,7 +230,6 @@ class RAGManager:
         
         if chunks:
             self.vector_store.add_documents(chunks)
-            self.vector_store.persist()
             logger.info(f"Indexed {len(chunks)} chunks from file {filename} for store {self.store_id}")
         
         return len(chunks)

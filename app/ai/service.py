@@ -1,18 +1,13 @@
 import logging
 from typing import List, Dict, Any, AsyncGenerator, Optional
 from langchain_openai import ChatOpenAI
-from langchain.schema import HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain.tools import tool
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from langgraph.graph import StateGraph, MessagesState, START, END
-from langgraph.prebuilt import ToolNode, tools_condition
-
 from app.lib.config import settings
 from app.models.models import Store
-from app.lib.rag import get_rag_manager
-
 logger = logging.getLogger(__name__)
 
 
@@ -86,7 +81,7 @@ def _build_system_prompt(store: Optional[Store] = None) -> str:
 
 
 class AIService:
-    """AI service using DeepSeek via OpenAI-compatible API with LangGraph orchestration."""
+    """AI service using DeepSeek via OpenAI-compatible API with optional RAG context."""
     
     def __init__(self):
         logger.info(f"Initializing AIService with DeepSeek model: {settings.DEEPSEEK_MODEL}")
@@ -115,14 +110,20 @@ class AIService:
         db: AsyncSession,
         chat_history: List[Dict[str, str]] = None
     ) -> AsyncGenerator[str, None]:
-        """Stream chat responses using DeepSeek + RAG context with LangGraph orchestration."""
+        """Stream chat responses using DeepSeek with optional RAG context."""
         
         # Fetch store for personalization
         store = await self._get_store(db, store_id)
         
-        # Pull RAG context
-        rag_manager = get_rag_manager(store_id)
-        semantic_context = await rag_manager.query(message)
+        # Pull RAG context when the embedding stack is available.
+        semantic_context = ""
+        try:
+            from app.lib.rag import get_rag_manager
+
+            rag_manager = get_rag_manager(store_id)
+            semantic_context = await rag_manager.query(message)
+        except ImportError:
+            logger.warning("RAG dependencies are unavailable; continuing without knowledge base context.")
         
         # Build enhanced message with context
         context_msg = f"\n[Knowledge Base Context]: {semantic_context}" if semantic_context else ""
