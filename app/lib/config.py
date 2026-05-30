@@ -11,10 +11,13 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
-    # Google Gemini
-    GEMINI_API_KEY: str
-    GEMINI_CHAT_MODEL: str = "gemini-2.5-flash"
-    GEMINI_EMBEDDING_MODEL: str = "models/text-embedding-004"
+    # DeepSeek AI
+    DEEPSEEK_API_KEY: str
+    DEEPSEEK_MODEL: str = "deepseek-chat"
+    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
+    
+    # Embeddings (local HuggingFace model — lightweight, no API key needed)
+    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
     
     # WhatsApp (Global Verify Token)
     WHATSAPP_VERIFY_TOKEN: str = ""
@@ -24,6 +27,10 @@ class Settings(BaseSettings):
     
     # Environment
     ENVIRONMENT: str = "development"
+    
+    # File Uploads
+    UPLOAD_DIR: str = "./uploads"
+    MAX_FILE_SIZE_MB: int = 50
     
     @property
     def cors_origins_list(self) -> List[str]:

@@ -5,7 +5,7 @@ from uuid import UUID
 from typing import List, Dict
 
 from app.lib.database import get_db
-from app.models.models import User, Business
+from app.models.models import User, Store
 from app.schemas.schemas import ChatMessage
 from app.lib.auth import get_current_user
 from app.ai.service import ai_service
@@ -22,25 +22,25 @@ async def stream_chat(
 ):
     """Stream chat responses from the AI."""
     
-    # Verify business belongs to user
+    # Verify store belongs to user
     result = await db.execute(
-        select(Business).filter(
-            Business.id == chat_data.business_id,
-            Business.user_id == current_user.id
+        select(Store).filter(
+            Store.id == chat_data.store_id,
+            Store.user_id == current_user.id
         )
     )
-    business = result.scalar_one_or_none()
+    store = result.scalar_one_or_none()
     
-    if not business:
+    if not store:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Business not found or access denied"
+            detail="Store not found or access denied"
         )
     
     async def generate():
         async for chunk in ai_service.chat_stream(
             message=chat_data.message,
-            business_id=str(chat_data.business_id),
+            store_id=str(chat_data.store_id),
             db=db
         ):
             yield chunk
@@ -59,24 +59,24 @@ async def chat(
 ):
     """Get a complete chat response (non-streaming)."""
     
-    # Verify business belongs to user
+    # Verify store belongs to user
     result = await db.execute(
-        select(Business).filter(
-            Business.id == chat_data.business_id,
-            Business.user_id == current_user.id
+        select(Store).filter(
+            Store.id == chat_data.store_id,
+            Store.user_id == current_user.id
         )
     )
-    business = result.scalar_one_or_none()
+    store = result.scalar_one_or_none()
     
-    if not business:
+    if not store:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Business not found or access denied"
+            detail="Store not found or access denied"
         )
     
     response = await ai_service.chat(
         message=chat_data.message,
-        business_id=str(chat_data.business_id),
+        store_id=str(chat_data.store_id),
         db=db
     )
     

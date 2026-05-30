@@ -1,14 +1,10 @@
-import os
-# Disable ChromaDB telemetry globally
-os.environ["ANONYMIZED_TELEMETRY"] = "False"
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 
 from app.lib.config import settings
-from app.routes import auth, business, users, chat, setup, webhooks
+from app.routes import auth, store, users, chat, setup, webhooks, documents
 
 # Configure logging
 logging.basicConfig(
@@ -21,8 +17,8 @@ logger = logging.getLogger(__name__)
 # Create FastAPI app
 app = FastAPI(
     title="Bizzz Backend API",
-    description="Multi-platform messaging integration with AI-powered chat",
-    version="1.0.0",
+    description="Multi-platform messaging integration with AI-powered chat (DeepSeek + LangGraph)",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -38,7 +34,8 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router)
-app.include_router(business.router)
+app.include_router(store.router)
+app.include_router(documents.router)
 app.include_router(users.router)
 app.include_router(chat.router)
 app.include_router(setup.router)
@@ -50,7 +47,8 @@ async def root():
     """Root endpoint."""
     return {
         "message": "Bizzz Backend API",
-        "version": "1.0.0",
+        "version": "2.0.0",
+        "ai": "DeepSeek",
         "docs": "/docs"
     }
 
