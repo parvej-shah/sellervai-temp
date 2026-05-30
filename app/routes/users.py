@@ -6,8 +6,9 @@ from uuid import UUID
 
 from app.lib.database import get_db
 from app.models.models import User
-from app.schemas.schemas import UserCreate, UserUpdate, UserResponse
+from app.schemas.schemas import UserUpdate, UserResponse, UserCreate
 from app.lib.auth import get_current_user, get_password_hash
+
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 

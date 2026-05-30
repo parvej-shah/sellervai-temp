@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr, UUID4
-from app.models.models import ServiceStatus, WebhookStatus
+from app.models.models import ServiceStatus, WebhookStatus, DocumentStatus
 
 
 # User Schemas
@@ -31,26 +31,50 @@ class UserResponse(UserBase):
         from_attributes = True
 
 
-# Business Schemas
-class BusinessBase(BaseModel):
+# Store Schemas
+class StoreBase(BaseModel):
     name: str
     description: Optional[str] = None
     products_items: List[dict] = []
+    tone: Optional[str] = None
+    personality_prompt: Optional[str] = None
+    welcome_message: Optional[str] = None
+    language: Optional[str] = "english"
 
 
-class BusinessCreate(BusinessBase):
+class StoreCreate(StoreBase):
     pass
 
 
-class BusinessUpdate(BaseModel):
+class StoreUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     products_items: Optional[List[dict]] = None
+    tone: Optional[str] = None
+    personality_prompt: Optional[str] = None
+    welcome_message: Optional[str] = None
+    language: Optional[str] = None
 
 
-class BusinessResponse(BusinessBase):
+class StoreResponse(StoreBase):
     id: UUID4
     user_id: UUID4
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+# Store Document Schemas
+class StoreDocumentResponse(BaseModel):
+    id: UUID4
+    store_id: UUID4
+    filename: str
+    file_type: str
+    file_size: Optional[int] = None
+    status: DocumentStatus
+    chunk_count: Optional[int] = None
     created_at: datetime
     updated_at: datetime
     
@@ -66,7 +90,7 @@ class ServiceBase(BaseModel):
 
 class ServiceResponse(ServiceBase):
     id: UUID4
-    business_id: UUID4
+    store_id: UUID4
     added_date: datetime
     webhook_added_date: Optional[datetime] = None
     created_at: datetime
@@ -161,7 +185,7 @@ class LoginRequest(BaseModel):
 # Chat Schemas
 class ChatMessage(BaseModel):
     message: str
-    business_id: UUID4
+    store_id: UUID4
 
 
 class ChatResponse(BaseModel):

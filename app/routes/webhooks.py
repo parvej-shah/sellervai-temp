@@ -15,9 +15,9 @@ router = APIRouter(prefix="/api/webhooks", tags=["Webhooks"])
 
 
 # Messenger Webhook
-@router.get("/messenger/{business_id}")
+@router.get("/messenger/{store_id}")
 async def verify_messenger_webhook(
-    business_id: UUID,
+    store_id: UUID,
     request: Request
 ):
     """Verify Messenger webhook (Facebook verification)."""
@@ -26,24 +26,24 @@ async def verify_messenger_webhook(
     challenge = request.query_params.get("hub.challenge")
     
     if mode == "subscribe" and token == settings.MESSENGER_VERIFY_TOKEN:
-        logger.info(f"Messenger webhook verified for business {business_id}")
+        logger.info(f"Messenger webhook verified for store {store_id}")
         return int(challenge)
     
     raise HTTPException(status_code=403, detail="Verification failed")
 
 
-@router.post("/messenger/{business_id}")
+@router.post("/messenger/{store_id}")
 async def messenger_webhook(
-    business_id: UUID,
+    store_id: UUID,
     request: Request,
     db: AsyncSession = Depends(get_db)
 ):
     """Handle incoming Messenger messages and events."""
     try:
-        # Verify business and messenger config
+        # Verify store and messenger config
         result = await db.execute(
             select(Messenger).filter(
-                Messenger.business_id == business_id,
+                Messenger.store_id == store_id,
                 Messenger.status == ServiceStatus.ACTIVE
             )
         )
@@ -68,7 +68,7 @@ async def messenger_webhook(
                             # Process message with AI
                             response = await message_processor.process_message(
                                 platform="messenger",
-                                business_id=str(business_id),
+                                store_id=str(store_id),
                                 sender_id=sender_id,
                                 message_text=message_text,
                                 db=db
@@ -79,7 +79,7 @@ async def messenger_webhook(
                                 messenger.page_id,
                                 sender_id,
                                 response,
-                                messenger.api_key # Access Token from DB
+                                messenger.api_key  # Access Token from DB
                             )
         
         return {"status": "ok"}
@@ -106,9 +106,9 @@ async def send_messenger_message(page_id: str, recipient_id: str, message: str, 
 
 
 # WhatsApp Webhook
-@router.get("/whatsapp/{business_id}")
+@router.get("/whatsapp/{store_id}")
 async def verify_whatsapp_webhook(
-    business_id: UUID,
+    store_id: UUID,
     request: Request
 ):
     """Verify WhatsApp webhook."""
@@ -117,15 +117,15 @@ async def verify_whatsapp_webhook(
     challenge = request.query_params.get("hub.challenge")
     
     if mode == "subscribe" and token == settings.WHATSAPP_VERIFY_TOKEN:
-        logger.info(f"WhatsApp webhook verified for business {business_id}")
+        logger.info(f"WhatsApp webhook verified for store {store_id}")
         return int(challenge)
     
     raise HTTPException(status_code=403, detail="Verification failed")
 
 
-@router.post("/whatsapp/{business_id}")
+@router.post("/whatsapp/{store_id}")
 async def whatsapp_webhook(
-    business_id: UUID,
+    store_id: UUID,
     request: Request,
     db: AsyncSession = Depends(get_db)
 ):
@@ -133,7 +133,7 @@ async def whatsapp_webhook(
     try:
         result = await db.execute(
             select(WhatsApp).filter(
-                WhatsApp.business_id == business_id,
+                WhatsApp.store_id == store_id,
                 WhatsApp.status == ServiceStatus.ACTIVE
             )
         )
@@ -157,7 +157,7 @@ async def whatsapp_webhook(
                         # Process message with AI
                         response = await message_processor.process_message(
                             platform="whatsapp",
-                            business_id=str(business_id),
+                            store_id=str(store_id),
                             sender_id=sender,
                             message_text=message_text,
                             db=db
@@ -199,9 +199,9 @@ async def send_whatsapp_message(phone_number_id: str, recipient: str, message: s
 
 
 # Telegram Webhook
-@router.post("/telegram/{business_id}")
+@router.post("/telegram/{store_id}")
 async def telegram_webhook(
-    business_id: UUID,
+    store_id: UUID,
     request: Request,
     db: AsyncSession = Depends(get_db)
 ):
@@ -209,7 +209,7 @@ async def telegram_webhook(
     try:
         result = await db.execute(
             select(Telegram).filter(
-                Telegram.business_id == business_id,
+                Telegram.store_id == store_id,
                 Telegram.status == ServiceStatus.ACTIVE
             )
         )
@@ -230,7 +230,7 @@ async def telegram_webhook(
                 # Process message with AI
                 response = await message_processor.process_message(
                     platform="telegram",
-                    business_id=str(business_id),
+                    store_id=str(store_id),
                     sender_id=str(chat_id),
                     message_text=message_text,
                     db=db
@@ -265,9 +265,9 @@ async def send_telegram_message(bot_token: str, chat_id: int, message: str):
 
 
 # Instagram Webhook
-@router.get("/instagram/{business_id}")
+@router.get("/instagram/{store_id}")
 async def verify_instagram_webhook(
-    business_id: UUID,
+    store_id: UUID,
     request: Request
 ):
     """Verify Instagram webhook."""
@@ -276,15 +276,15 @@ async def verify_instagram_webhook(
     challenge = request.query_params.get("hub.challenge")
     
     if mode == "subscribe" and token == settings.MESSENGER_VERIFY_TOKEN:
-        logger.info(f"Instagram webhook verified for business {business_id}")
+        logger.info(f"Instagram webhook verified for store {store_id}")
         return int(challenge)
     
     raise HTTPException(status_code=403, detail="Verification failed")
 
 
-@router.post("/instagram/{business_id}")
+@router.post("/instagram/{store_id}")
 async def instagram_webhook(
-    business_id: UUID,
+    store_id: UUID,
     request: Request,
     db: AsyncSession = Depends(get_db)
 ):
@@ -292,7 +292,7 @@ async def instagram_webhook(
     try:
         result = await db.execute(
             select(Instagram).filter(
-                Instagram.business_id == business_id,
+                Instagram.store_id == store_id,
                 Instagram.status == ServiceStatus.ACTIVE
             )
         )
@@ -315,7 +315,7 @@ async def instagram_webhook(
                     if message_text:
                         response = await message_processor.process_message(
                             platform="instagram",
-                            business_id=str(business_id),
+                            store_id=str(store_id),
                             sender_id=sender_id,
                             message_text=message_text,
                             db=db
@@ -339,7 +339,7 @@ async def instagram_webhook(
                     if comment_text:
                         response = await message_processor.process_comment(
                             platform="instagram",
-                            business_id=str(business_id),
+                            store_id=str(store_id),
                             post_id=value.get("media", {}).get("id", ""),
                             commenter_id=value.get("from", {}).get("id", ""),
                             comment_text=comment_text,

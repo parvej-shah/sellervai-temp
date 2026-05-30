@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.models import Business
+from app.models.models import Store
 from app.ai.service import ai_service
 import logging
 
@@ -13,7 +13,7 @@ class MessageProcessor:
     async def process_message(
         self,
         platform: str,
-        business_id: str,
+        store_id: str,
         sender_id: str,
         message_text: str,
         db: AsyncSession
@@ -22,12 +22,12 @@ class MessageProcessor:
         Process incoming message and generate AI response.
         """
         try:
-            logger.info(f"Processing message from {platform} for business {business_id}")
+            logger.info(f"Processing message from {platform} for store {store_id}")
             
             # Generate AI response
             response = await ai_service.chat(
                 message=message_text,
-                business_id=business_id,
+                store_id=store_id,
                 db=db
             )
             
@@ -41,7 +41,7 @@ class MessageProcessor:
     async def process_comment(
         self,
         platform: str,
-        business_id: str,
+        store_id: str,
         post_id: str,
         commenter_id: str,
         comment_text: str,
@@ -51,12 +51,12 @@ class MessageProcessor:
         Process incoming comment and generate AI response.
         """
         try:
-            logger.info(f"Processing comment from {platform} for business {business_id}")
+            logger.info(f"Processing comment from {platform} for store {store_id}")
             
             # Generate AI response
             response = await ai_service.chat(
                 message=comment_text,
-                business_id=business_id,
+                store_id=store_id,
                 db=db
             )
             

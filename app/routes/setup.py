@@ -6,7 +6,7 @@ from datetime import datetime
 import httpx
 
 from app.lib.database import get_db
-from app.models.models import User, Business, Messenger, WhatsApp, Telegram, Instagram, FacebookPages
+from app.models.models import User, Store, Messenger, WhatsApp, Telegram, Instagram, FacebookPages
 from app.models.models import WebhookStatus, ServiceStatus
 from app.schemas.schemas import (
     MessengerCreate, MessengerResponse,
@@ -41,28 +41,28 @@ def decrypt_api_key(encrypted_key: str) -> str:
 
 
 # Messenger Routes
-@router.post("/messenger/{business_id}/api-key", response_model=MessengerResponse)
+@router.post("/messenger/{store_id}/api-key", response_model=MessengerResponse)
 async def setup_messenger_api_key(
-    business_id: UUID,
+    store_id: UUID,
     messenger_data: MessengerCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Configure Messenger API key for a business."""
-    # Verify business ownership
+    """Configure Messenger API key for a store."""
+    # Verify store ownership
     result = await db.execute(
-        select(Business).filter(
-            Business.id == business_id,
-            Business.user_id == current_user.id
+        select(Store).filter(
+            Store.id == store_id,
+            Store.user_id == current_user.id
         )
     )
-    business = result.scalar_one_or_none()
-    if not business:
-        raise HTTPException(status_code=404, detail="Business not found")
+    store = result.scalar_one_or_none()
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
     
     # Check if messenger config already exists
     result = await db.execute(
-        select(Messenger).filter(Messenger.business_id == business_id)
+        select(Messenger).filter(Messenger.store_id == store_id)
     )
     messenger = result.scalar_one_or_none()
     
@@ -76,7 +76,7 @@ async def setup_messenger_api_key(
     else:
         # Create new
         messenger = Messenger(
-            business_id=business_id,
+            store_id=store_id,
             api_key=encrypted_key,
             page_id=messenger_data.page_id
         )
@@ -87,15 +87,15 @@ async def setup_messenger_api_key(
     return messenger
 
 
-@router.post("/messenger/{business_id}/webhook", response_model=WebhookVerification)
+@router.post("/messenger/{store_id}/webhook", response_model=WebhookVerification)
 async def setup_messenger_webhook(
-    business_id: UUID,
+    store_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Verify and activate Messenger webhook."""
     result = await db.execute(
-        select(Messenger).filter(Messenger.business_id == business_id)
+        select(Messenger).filter(Messenger.store_id == store_id)
     )
     messenger = result.scalar_one_or_none()
     
@@ -117,26 +117,26 @@ async def setup_messenger_webhook(
 
 
 # WhatsApp Routes
-@router.post("/whatsapp/{business_id}/api-key", response_model=WhatsAppResponse)
+@router.post("/whatsapp/{store_id}/api-key", response_model=WhatsAppResponse)
 async def setup_whatsapp_api_key(
-    business_id: UUID,
+    store_id: UUID,
     whatsapp_data: WhatsAppCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Configure WhatsApp API key for a business."""
+    """Configure WhatsApp API key for a store."""
     result = await db.execute(
-        select(Business).filter(
-            Business.id == business_id,
-            Business.user_id == current_user.id
+        select(Store).filter(
+            Store.id == store_id,
+            Store.user_id == current_user.id
         )
     )
-    business = result.scalar_one_or_none()
-    if not business:
-        raise HTTPException(status_code=404, detail="Business not found")
+    store = result.scalar_one_or_none()
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
     
     result = await db.execute(
-        select(WhatsApp).filter(WhatsApp.business_id == business_id)
+        select(WhatsApp).filter(WhatsApp.store_id == store_id)
     )
     whatsapp = result.scalar_one_or_none()
     
@@ -149,7 +149,7 @@ async def setup_whatsapp_api_key(
         whatsapp.status = ServiceStatus.INACTIVE
     else:
         whatsapp = WhatsApp(
-            business_id=business_id,
+            store_id=store_id,
             api_key=encrypted_key,
             phone_number_id=whatsapp_data.phone_number_id,
             business_account_id=whatsapp_data.business_account_id
@@ -161,15 +161,15 @@ async def setup_whatsapp_api_key(
     return whatsapp
 
 
-@router.post("/whatsapp/{business_id}/webhook", response_model=WebhookVerification)
+@router.post("/whatsapp/{store_id}/webhook", response_model=WebhookVerification)
 async def setup_whatsapp_webhook(
-    business_id: UUID,
+    store_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Verify and activate WhatsApp webhook."""
     result = await db.execute(
-        select(WhatsApp).filter(WhatsApp.business_id == business_id)
+        select(WhatsApp).filter(WhatsApp.store_id == store_id)
     )
     whatsapp = result.scalar_one_or_none()
     
@@ -189,26 +189,26 @@ async def setup_whatsapp_webhook(
 
 
 # Telegram Routes
-@router.post("/telegram/{business_id}/api-key", response_model=TelegramResponse)
+@router.post("/telegram/{store_id}/api-key", response_model=TelegramResponse)
 async def setup_telegram_api_key(
-    business_id: UUID,
+    store_id: UUID,
     telegram_data: TelegramCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Configure Telegram bot token for a business."""
+    """Configure Telegram bot token for a store."""
     result = await db.execute(
-        select(Business).filter(
-            Business.id == business_id,
-            Business.user_id == current_user.id
+        select(Store).filter(
+            Store.id == store_id,
+            Store.user_id == current_user.id
         )
     )
-    business = result.scalar_one_or_none()
-    if not business:
-        raise HTTPException(status_code=404, detail="Business not found")
+    store = result.scalar_one_or_none()
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
     
     result = await db.execute(
-        select(Telegram).filter(Telegram.business_id == business_id)
+        select(Telegram).filter(Telegram.store_id == store_id)
     )
     telegram = result.scalar_one_or_none()
     
@@ -220,7 +220,7 @@ async def setup_telegram_api_key(
         telegram.status = ServiceStatus.INACTIVE
     else:
         telegram = Telegram(
-            business_id=business_id,
+            store_id=store_id,
             bot_token=encrypted_token,
             bot_username=telegram_data.bot_username
         )
@@ -231,15 +231,15 @@ async def setup_telegram_api_key(
     return telegram
 
 
-@router.post("/telegram/{business_id}/webhook", response_model=WebhookVerification)
+@router.post("/telegram/{store_id}/webhook", response_model=WebhookVerification)
 async def setup_telegram_webhook(
-    business_id: UUID,
+    store_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Verify and activate Telegram webhook."""
     result = await db.execute(
-        select(Telegram).filter(Telegram.business_id == business_id)
+        select(Telegram).filter(Telegram.store_id == store_id)
     )
     telegram = result.scalar_one_or_none()
     
@@ -259,26 +259,26 @@ async def setup_telegram_webhook(
 
 
 # Instagram Routes
-@router.post("/instagram/{business_id}/api-key", response_model=InstagramResponse)
+@router.post("/instagram/{store_id}/api-key", response_model=InstagramResponse)
 async def setup_instagram_api_key(
-    business_id: UUID,
+    store_id: UUID,
     instagram_data: InstagramCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Configure Instagram API key for a business."""
+    """Configure Instagram API key for a store."""
     result = await db.execute(
-        select(Business).filter(
-            Business.id == business_id,
-            Business.user_id == current_user.id
+        select(Store).filter(
+            Store.id == store_id,
+            Store.user_id == current_user.id
         )
     )
-    business = result.scalar_one_or_none()
-    if not business:
-        raise HTTPException(status_code=404, detail="Business not found")
+    store = result.scalar_one_or_none()
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
     
     result = await db.execute(
-        select(Instagram).filter(Instagram.business_id == business_id)
+        select(Instagram).filter(Instagram.store_id == store_id)
     )
     instagram = result.scalar_one_or_none()
     
@@ -290,7 +290,7 @@ async def setup_instagram_api_key(
         instagram.status = ServiceStatus.INACTIVE
     else:
         instagram = Instagram(
-            business_id=business_id,
+            store_id=store_id,
             api_key=encrypted_key,
             instagram_account_id=instagram_data.instagram_account_id
         )
@@ -301,15 +301,15 @@ async def setup_instagram_api_key(
     return instagram
 
 
-@router.post("/instagram/{business_id}/webhook", response_model=WebhookVerification)
+@router.post("/instagram/{store_id}/webhook", response_model=WebhookVerification)
 async def setup_instagram_webhook(
-    business_id: UUID,
+    store_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Verify and activate Instagram webhook."""
     result = await db.execute(
-        select(Instagram).filter(Instagram.business_id == business_id)
+        select(Instagram).filter(Instagram.store_id == store_id)
     )
     instagram = result.scalar_one_or_none()
     
