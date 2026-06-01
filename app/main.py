@@ -14,13 +14,15 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+logger.info(f"[ENV] Enviroment: {settings.ENVIRONMENT}")
+
 # Create FastAPI app
 app = FastAPI(
     title="Bizzz Backend API",
     description="Multi-platform messaging integration with AI-powered chat (DeepSeek + RAG)",
     version="2.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    docs_url= "/docs"  if settings.ENVIRONMENT == "development" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None
 )
 
 # Configure CORS

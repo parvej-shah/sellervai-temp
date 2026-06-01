@@ -59,6 +59,7 @@ class StoreUpdate(BaseModel):
 class StoreResponse(StoreBase):
     id: UUID4
     user_id: UUID4
+    verification_token: str
     created_at: datetime
     updated_at: datetime
     

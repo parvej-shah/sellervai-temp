@@ -5,27 +5,29 @@ from uuid import UUID
 import logging
 
 from app.lib.database import get_db
-from app.models.models import Messenger, WhatsApp, Telegram, Instagram, ServiceStatus
+from app.models.models import Messenger, WhatsApp, Telegram, Instagram, ServiceStatus, Store
 from app.services.message_processor import message_processor
-from app.lib.config import settings
 import httpx
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/webhooks", tags=["Webhooks"])
 
 
-# Messenger Webhook
 @router.get("/messenger/{store_id}")
 async def verify_messenger_webhook(
     store_id: UUID,
-    request: Request
+    request: Request,
+    db: AsyncSession = Depends(get_db)
 ):
     """Verify Messenger webhook (Facebook verification)."""
     mode = request.query_params.get("hub.mode")
     token = request.query_params.get("hub.verify_token")
     challenge = request.query_params.get("hub.challenge")
-    
-    if mode == "subscribe" and token == settings.MESSENGER_VERIFY_TOKEN:
+
+    result = await db.execute(select(Store).filter(Store.id == store_id))
+    store = result.scalar_one_or_none()
+
+    if mode == "subscribe" and store and token == store.verification_token:
         logger.info(f"Messenger webhook verified for store {store_id}")
         return int(challenge)
     
@@ -98,25 +100,30 @@ async def send_messenger_message(page_id: str, recipient_id: str, message: str, 
         "message": {"text": message}
     }
     
-    params = {"access_token": access_token}
+    params = {
+        "access_token": access_token
+    }
     
     async with httpx.AsyncClient() as client:
         response = await client.post(url, json=payload, params=params)
         return response.json()
 
 
-# WhatsApp Webhook
 @router.get("/whatsapp/{store_id}")
 async def verify_whatsapp_webhook(
     store_id: UUID,
-    request: Request
+    request: Request,
+    db: AsyncSession = Depends(get_db)
 ):
     """Verify WhatsApp webhook."""
     mode = request.query_params.get("hub.mode")
     token = request.query_params.get("hub.verify_token")
     challenge = request.query_params.get("hub.challenge")
-    
-    if mode == "subscribe" and token == settings.WHATSAPP_VERIFY_TOKEN:
+
+    result = await db.execute(select(Store).filter(Store.id == store_id))
+    store = result.scalar_one_or_none()
+
+    if mode == "subscribe" and store and token == store.verification_token:
         logger.info(f"WhatsApp webhook verified for store {store_id}")
         return int(challenge)
     
@@ -264,18 +271,21 @@ async def send_telegram_message(bot_token: str, chat_id: int, message: str):
         return response.json()
 
 
-# Instagram Webhook
 @router.get("/instagram/{store_id}")
 async def verify_instagram_webhook(
     store_id: UUID,
-    request: Request
+    request: Request,
+    db: AsyncSession = Depends(get_db)
 ):
     """Verify Instagram webhook."""
     mode = request.query_params.get("hub.mode")
     token = request.query_params.get("hub.verify_token")
     challenge = request.query_params.get("hub.challenge")
-    
-    if mode == "subscribe" and token == settings.MESSENGER_VERIFY_TOKEN:
+
+    result = await db.execute(select(Store).filter(Store.id == store_id))
+    store = result.scalar_one_or_none()
+
+    if mode == "subscribe" and store and token == store.verification_token:
         logger.info(f"Instagram webhook verified for store {store_id}")
         return int(challenge)
     

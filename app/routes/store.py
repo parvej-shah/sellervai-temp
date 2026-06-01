@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
+import secrets
 
 from app.lib.database import get_db
 from app.models.models import User, Store
@@ -10,6 +11,10 @@ from app.schemas.schemas import StoreCreate, StoreUpdate, StoreResponse
 from app.lib.auth import get_current_user
 
 router = APIRouter(prefix="/api/store", tags=["Store"])
+
+
+def generate_verification_token() -> str:
+    return secrets.token_urlsafe(32)
 
 
 @router.get("/", response_model=List[StoreResponse])
@@ -41,6 +46,7 @@ async def create_store(
         personality_prompt=store_data.personality_prompt,
         welcome_message=store_data.welcome_message,
         language=store_data.language,
+        verification_token=generate_verification_token(),
     )
     
     db.add(new_store)
@@ -111,6 +117,8 @@ async def update_store(
         store.welcome_message = store_data.welcome_message
     if store_data.language is not None:
         store.language = store_data.language
+    if not store.verification_token:
+        store.verification_token = generate_verification_token()
     
     await db.commit()
     await db.refresh(store)

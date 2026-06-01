@@ -14,6 +14,7 @@ PAGE_STYLE = """
   textarea { min-height: 92px; resize: vertical; }
   button, .button { display: inline-block; width: auto; text-decoration: none; border: 1px solid #111; background: #111; color: #fff; cursor: pointer; }
   .button.secondary, button.secondary { background: #fff; color: #111; }
+  .copy-button { display: inline-flex; align-items: center; gap: 6px; }
   .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .grid { display: grid; gap: 16px; }
   .store-list { display: grid; gap: 12px; }
@@ -43,6 +44,7 @@ function clearError(){const e=document.getElementById("page-error");if(e){e.text
 function requireTokenOrRedirect(){if(!getToken()){window.location.href="/";return false}return true}
 async function ensureSessionOrRedirect(){const token=getToken();if(!token){return null}try{return await fetchJson("/api/auth/session")}catch(error){clearAuth();if(error && error.status === 401){window.location.href="/login";return null}showError(error.message||"Session check failed");return null}}
 function parseJsonInput(value,fallback){const t=String(value||"").trim();if(!t){return fallback}try{return JSON.parse(t)}catch{return fallback}}
+async function copyText(text){const value=String(text||"");if(!value){return false}if(navigator.clipboard && window.isSecureContext){await navigator.clipboard.writeText(value);return true}const input=document.createElement("textarea");input.value=value;input.setAttribute("readonly","");input.style.position="absolute";input.style.left="-9999px";document.body.appendChild(input);input.select();document.execCommand("copy");document.body.removeChild(input);return true}
 async function fetchJson(url,options={}){const response=await fetch(url,{...options,headers:{...(options.headers||{}),...authHeaders()}});const rawText=await response.text();let data={};if(rawText){try{data=JSON.parse(rawText)}catch{data={detail:rawText}}}if(!response.ok){if(response.status===401){clearAuth();window.location.href="/login";}const err=new Error(data.detail||response.statusText||`HTTP ${response.status}`);err.status=response.status;err.data=data;throw err}return data}
 async function fetchStores(){return fetchJson("/api/store/")}
 function renderStoreCards(containerId,stores){const c=document.getElementById(containerId);if(!c)return;c.innerHTML="";if(!stores.length){c.innerHTML='<p class="muted">No stores yet.</p>';return}for(const store of stores){const card=document.createElement("div");card.className="store-card";const title=document.createElement("h3");title.textContent=store.name;card.appendChild(title);const description=document.createElement("p");description.className="muted small";description.textContent=store.description||"No description yet.";card.appendChild(description);const actions=document.createElement("div");actions.className="actions";const openLink=document.createElement("a");openLink.className="button";openLink.href=`/stores/${store.id}`;openLink.textContent="Open store";openLink.addEventListener("click",()=>setStoreId(store.id));actions.appendChild(openLink);card.appendChild(actions);c.appendChild(card)}}

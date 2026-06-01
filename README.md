@@ -54,6 +54,43 @@ bizzz-backend/
 └── README.md
 ```
 
+
+## PostgreSql Notes
+To list your databases:
+```bash
+sudo -u postgres psql -c "\l"
+```
+Reset Password:
+```bash
+sudo -u postgres psql
+# then inside psql:
+ALTER USER postgres PASSWORD 'newpassword';
+# or for a specific user:
+ALTER USER saikat PASSWORD 'newpassword';
+\q
+```
+Bypass Password temporally:
+```bash
+sudo -u postgres psql  # no password needed as root
+```
+Connecting String:
+```bash
+postgresql://USER:PASSWORD@localhost:5432/DBNAME
+# or
+postgresql://saikat:password@localhost:5432/mydb
+```
+Creating a new database:
+```bash
+sudo -u postgres psql
+CREATE DATABASE sellervai;
+CREATE USER saikat WITH PASSWORD 'saikat'; // if not created earlier
+GRANT ALL PRIVILEGES ON DATABASE sellervai TO saikat;
+ALTER DATABASE sellervai OWNER TO saikat;
+\q
+// before quit, to list all db
+\l *
+```
+
 ## Setup Instructions
 
 ### 1. Prerequisites

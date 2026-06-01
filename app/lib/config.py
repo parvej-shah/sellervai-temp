@@ -50,9 +50,6 @@ class Settings(BaseSettings):
     # Embeddings (local FastEmbed model — lightweight, no API key needed)
     EMBEDDING_MODEL: str = "intfloat/multilingual-e5-small"
     
-    # WhatsApp (Global Verify Token)
-    WHATSAPP_VERIFY_TOKEN: str = ""
-    
     # CORS
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
     

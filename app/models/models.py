@@ -1,3 +1,4 @@
+import secrets
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, ForeignKey, Text, JSON, Integer, Enum as SQLEnum
@@ -49,6 +50,7 @@ class Store(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     products_items = Column(JSON, default=list, nullable=False)
+    verification_token = Column(String(255), unique=True, index=True, nullable=False, default=lambda: secrets.token_urlsafe(32))
     
     # Personalization / LLM Characterization
     tone = Column(String(100), nullable=True)  # e.g., "friendly", "professional", "casual"

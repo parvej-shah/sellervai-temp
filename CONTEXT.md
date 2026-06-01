@@ -43,6 +43,10 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 - Add indexed update triggers (on product/description changes) or a background job to keep PGVector in sync.
 - Consider storing metadata IDs with vectors so replies can include product references/citations.
 - If you want true tool-driven streaming (agent runs tools live and streams results), implement a structured agent loop that can call tools and stream intermediate outputs.
+- The store detail page at `/stores/{store_id}` renders an editable `products_items` JSON textarea and preloads the current store with `GET /api/store/{store_id}`.
+- The page template uses escaped braces for any literal JSON sample content so the Python f-string stays valid when the route is rendered.
+- The store detail page also shows each platform webhook URL for the current store and includes a copy button for quick pasting into external dashboards.
+- Each store now has a database-backed `verification_token`; webhook verification compares `hub.verify_token` against the store row instead of any global env token.
 
 ## Naming Status
 - Current active router is `app/routes/store.py` with `/api/store` endpoints.
