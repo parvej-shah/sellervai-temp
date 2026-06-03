@@ -5,6 +5,7 @@ import logging
 
 from app.lib.config import settings
 from app.routes import auth, store, users, chat, setup, webhooks, documents, pages, meta_connect
+from app.routes import products, coupons, orders
 
 # Configure logging
 logging.basicConfig(
@@ -44,6 +45,9 @@ app.include_router(chat.router)
 app.include_router(setup.router)
 app.include_router(webhooks.router)
 app.include_router(meta_connect.router)
+app.include_router(products.router)
+app.include_router(coupons.router)
+app.include_router(orders.router)
 
 
 @app.get("/health")
