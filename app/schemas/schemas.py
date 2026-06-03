@@ -1,10 +1,18 @@
 from datetime import datetime
-from typing import Optional, List
+from decimal import Decimal
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, EmailStr, UUID4
-from app.models.models import ServiceStatus, WebhookStatus, DocumentStatus
+
+from app.models.models import (
+    ServiceStatus, WebhookStatus, DocumentStatus,
+    OrderStatus, ResponseLanguage,
+)
 
 
-# User Schemas
+# ---------------------------------------------------------------------------
+# User
+# ---------------------------------------------------------------------------
+
 class UserBase(BaseModel):
     name: str
     email: EmailStr
@@ -26,20 +34,23 @@ class UserResponse(UserBase):
     id: UUID4
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
-# Store Schemas
+# ---------------------------------------------------------------------------
+# Store
+# ---------------------------------------------------------------------------
+
 class StoreBase(BaseModel):
     name: str
     description: Optional[str] = None
-    products_items: List[dict] = []
     tone: Optional[str] = None
     personality_prompt: Optional[str] = None
     welcome_message: Optional[str] = None
-    language: Optional[str] = "english"
+    language: Optional[ResponseLanguage] = ResponseLanguage.ADAPTIVE
+    orders_enabled: Optional[bool] = True
 
 
 class StoreCreate(StoreBase):
@@ -49,11 +60,11 @@ class StoreCreate(StoreBase):
 class StoreUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    products_items: Optional[List[dict]] = None
     tone: Optional[str] = None
     personality_prompt: Optional[str] = None
     welcome_message: Optional[str] = None
-    language: Optional[str] = None
+    language: Optional[ResponseLanguage] = None
+    orders_enabled: Optional[bool] = None
 
 
 class StoreResponse(StoreBase):
@@ -62,12 +73,15 @@ class StoreResponse(StoreBase):
     verification_token: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
-# Store Document Schemas
+# ---------------------------------------------------------------------------
+# Store Document
+# ---------------------------------------------------------------------------
+
 class StoreDocumentResponse(BaseModel):
     id: UUID4
     store_id: UUID4
@@ -78,12 +92,160 @@ class StoreDocumentResponse(BaseModel):
     chunk_count: Optional[int] = None
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
-# Service Base Schemas
+# ---------------------------------------------------------------------------
+# Product
+# ---------------------------------------------------------------------------
+
+class ProductBase(BaseModel):
+    product_code: str
+    name: str
+    description: Optional[str] = None
+    image: Optional[str] = None
+    available_count: int = 0
+    price: Decimal
+    discount: Optional[Decimal] = None
+    enabled: bool = True
+
+
+class ProductCreate(ProductBase):
+    pass
+
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+    available_count: Optional[int] = None
+    price: Optional[Decimal] = None
+    discount: Optional[Decimal] = None
+    enabled: Optional[bool] = None
+
+
+class ProductResponse(ProductBase):
+    id: UUID4
+    store_id: UUID4
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Coupon
+# ---------------------------------------------------------------------------
+
+class CouponBase(BaseModel):
+    code: str
+    description: Optional[str] = None
+    discount_amount: Optional[Decimal] = None
+    discount_percent: Optional[Decimal] = None
+    min_order_amount: Optional[Decimal] = None
+    max_uses: Optional[int] = None
+    expires_at: Optional[datetime] = None
+    enabled: bool = True
+
+
+class CouponCreate(CouponBase):
+    pass
+
+
+class CouponUpdate(BaseModel):
+    description: Optional[str] = None
+    discount_amount: Optional[Decimal] = None
+    discount_percent: Optional[Decimal] = None
+    min_order_amount: Optional[Decimal] = None
+    max_uses: Optional[int] = None
+    expires_at: Optional[datetime] = None
+    enabled: Optional[bool] = None
+
+
+class CouponResponse(CouponBase):
+    id: UUID4
+    store_id: UUID4
+    used_count: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Order
+# ---------------------------------------------------------------------------
+
+class OrderCreate(BaseModel):
+    customer_name: str
+    customer_phone: str
+    customer_phone_2: Optional[str] = None
+    delivery_address: str
+    product_code: str
+    quantity: int = 1
+    coupon_code: Optional[str] = None
+    extra_info: Optional[Dict[str, Any]] = {}
+
+
+class OrderUpdate(BaseModel):
+    status: Optional[OrderStatus] = None
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    customer_phone_2: Optional[str] = None
+    delivery_address: Optional[str] = None
+    extra_info: Optional[Dict[str, Any]] = None
+
+
+class OrderResponse(BaseModel):
+    id: UUID4
+    store_id: UUID4
+    order_number: str
+    customer_name: str
+    customer_phone: str
+    customer_phone_2: Optional[str] = None
+    delivery_address: str
+    product_code: str
+    product_name: str
+    product_price: Decimal
+    quantity: int
+    coupon_code: Optional[str] = None
+    discount_applied: Decimal
+    total_amount: Decimal
+    extra_info: Dict[str, Any]
+    status: OrderStatus
+    platform: Optional[str] = None
+    sender_id: Optional[str] = None
+    order_date: datetime
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Conversation memory
+# ---------------------------------------------------------------------------
+
+class ConversationMemoryResponse(BaseModel):
+    id: UUID4
+    conversation_id: UUID4
+    memory: Dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Platform service schemas
+# ---------------------------------------------------------------------------
+
 class ServiceBase(BaseModel):
     webhook_status: WebhookStatus = WebhookStatus.PENDING
     status: ServiceStatus = ServiceStatus.INACTIVE
@@ -96,12 +258,11 @@ class ServiceResponse(ServiceBase):
     webhook_added_date: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
-# Messenger Schemas
 class MessengerCreate(BaseModel):
     api_key: str
     page_id: Optional[str] = None
@@ -109,12 +270,11 @@ class MessengerCreate(BaseModel):
 
 class MessengerResponse(ServiceResponse):
     page_id: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
 
-# WhatsApp Schemas
 class WhatsAppCreate(BaseModel):
     api_key: str
     phone_number_id: Optional[str] = None
@@ -124,12 +284,11 @@ class WhatsAppCreate(BaseModel):
 class WhatsAppResponse(ServiceResponse):
     phone_number_id: Optional[str] = None
     business_account_id: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
 
-# Telegram Schemas
 class TelegramCreate(BaseModel):
     bot_token: str
     bot_username: Optional[str] = None
@@ -137,12 +296,11 @@ class TelegramCreate(BaseModel):
 
 class TelegramResponse(ServiceResponse):
     bot_username: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
 
-# Instagram Schemas
 class InstagramCreate(BaseModel):
     api_key: str
     instagram_account_id: Optional[str] = None
@@ -150,12 +308,11 @@ class InstagramCreate(BaseModel):
 
 class InstagramResponse(ServiceResponse):
     instagram_account_id: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
 
-# Facebook Pages Schemas
 class FacebookPagesCreate(BaseModel):
     api_key: str
     page_id: Optional[str] = None
@@ -163,12 +320,15 @@ class FacebookPagesCreate(BaseModel):
 
 class FacebookPagesResponse(ServiceResponse):
     page_id: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
 
-# Auth Schemas
+# ---------------------------------------------------------------------------
+# Auth
+# ---------------------------------------------------------------------------
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -183,7 +343,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
-# Chat Schemas
+# ---------------------------------------------------------------------------
+# Chat
+# ---------------------------------------------------------------------------
+
 class ChatMessage(BaseModel):
     message: str
     store_id: UUID4
@@ -194,7 +357,10 @@ class ChatResponse(BaseModel):
     timestamp: datetime
 
 
-# Webhook Verification
+# ---------------------------------------------------------------------------
+# Misc
+# ---------------------------------------------------------------------------
+
 class WebhookVerification(BaseModel):
     verified: bool
     message: str
