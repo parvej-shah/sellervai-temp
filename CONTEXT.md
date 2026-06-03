@@ -63,3 +63,7 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 ---
 
 File generated for quick context in conversations and developer onboarding.
+
+
+WEBHOOK_URL: https://neural-raising-hugh-holdem.trycloudflare.com/api/webhooks/meta
+VERIFY_TOKEN: sellervai_meta_webhook_token

@@ -23,7 +23,11 @@ async def verify_meta_webhook(request: Request):
 
     # The verification token is defined globally in the app dashboard
     # Use settings.META_VERIFY_TOKEN or a hardcoded value if not present
-    expected_token = getattr(settings, "META_VERIFY_TOKEN", "bizzz_meta_webhook_token")
+    expected_token = getattr(settings, "META_VERIFY_TOKEN", "sellervai_meta_webhook_token")
+    print("mode", mode)
+    print("token", token)
+    print("challenge", challenge)
+    print("expected_token", expected_token)
 
     if mode == "subscribe" and token == expected_token:
         logger.info("Meta webhook verified")

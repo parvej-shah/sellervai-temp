@@ -110,6 +110,11 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+dpkg -l | grep pgvector
+sudo apt-get install -y postgresql-16-pgvector 2>/dev/null || true
+sudo -u postgres psql -d sellervai -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
 ```
 
 ### 3. Environment Configuration
