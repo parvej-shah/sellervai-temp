@@ -40,6 +40,7 @@ async def messenger_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db)
 ):
+    logger.info(f"Processing Messenger webhook for store {store_id}")
     """Handle incoming Messenger messages and events."""
     try:
         # Verify store and messenger config
@@ -56,6 +57,8 @@ async def messenger_webhook(
         
         # Parse webhook data
         data = await request.json()
+
+        logger.info(f"Received Messenger webhook data: {data}")
         
         if data.get("object") == "page":
             for entry in data.get("entry", []):
