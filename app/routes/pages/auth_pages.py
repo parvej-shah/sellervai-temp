@@ -1,10 +1,11 @@
 from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
 from .common import render_page
 
 router = APIRouter()
 
 
-@router.get("/", response_class=None)
+@router.get("/", response_class=HTMLResponse)
 async def _root_redirect():
     # root is defined in main pages package; keep this placeholder minimal
     body = """
@@ -25,7 +26,7 @@ ensureSessionOrRedirect().then((session) => { if (session) { window.location.hre
     return render_page("Bizzz Backend", body, script)
 
 
-@router.get("/login", response_class=None)
+@router.get("/login", response_class=HTMLResponse)
 async def login_page():
     body = """
 <h1>Login</h1>
@@ -69,7 +70,7 @@ document.getElementById("login-form").addEventListener("submit", async (event) =
     return render_page("Login", body, script)
 
 
-@router.get("/register", response_class=None)
+@router.get("/register", response_class=HTMLResponse)
 async def register_page():
     body = """
 <h1>Register</h1>
@@ -121,6 +122,6 @@ document.getElementById("register-form").addEventListener("submit", async (event
     return render_page("Register", body, script)
 
 
-@router.get("/create-account", response_class=None)
+@router.get("/create-account", response_class=HTMLResponse)
 async def create_account():
     return await register_page()

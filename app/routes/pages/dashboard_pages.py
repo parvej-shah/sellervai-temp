@@ -1,16 +1,17 @@
 from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
 from .common import render_page
 
 router = APIRouter()
 
 
-@router.get("/", response_class=None)
+@router.get("/", response_class=HTMLResponse)
 async def _dashboard_root():
     # placeholder
     return render_page("Dashboard", "<p>Go to /dashboard</p>")
 
 
-@router.get("/dashboard", response_class=None)
+@router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard():
     body = """
 <h1>Dashboard</h1>
@@ -34,7 +35,7 @@ async function loadDashboard(){ try{ const stores = await fetchStores(); renderS
     return render_page("Dashboard", body, script)
 
 
-@router.get("/create-store", response_class=None)
+@router.get("/create-store", response_class=HTMLResponse)
 async def create_store_page():
     body = """
 <h1>Create store</h1>

@@ -5,7 +5,9 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 ## High-level flow
 - Incoming requests:
   - API chat requests: handled by `POST /api/chat` and `POST /api/chat/stream` in `app/routes/chat.py`
-  - Platform messages: handled by webhooks in `app/routes/webhooks.py` (Messenger, WhatsApp, Telegram, Instagram)
+  - Platform messages: handled by webhooks in `app/routes/webhooks.py`. 
+    - **Meta:** A single global webhook (`/api/webhooks/meta`) handles all traffic for Facebook Messenger, Instagram, and WhatsApp. It utilizes `BackgroundTasks` for fast 200 OK responses.
+    - **Telegram:** Remains as per-store webhooks.
 - Routes validate user or platform config and obtain an `AsyncSession` from the DB dependency (`app/lib/database.py`).
 - Messages are processed by `app/services/message_processor.py` which calls the AI layer (`app/ai/service.py`).
 - The AI layer uses DeepSeek via `ChatOpenAI` and builds prompts with optional RAG context.
@@ -37,6 +39,8 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 
 ## Data split
 - PostgreSQL: users, stores, configuration, webhooks, platform tokens (encrypted), and vector storage via PGVector.
+- Meta integration uses multi-tenant lookup tables (`ConnectedPage`, `ConnectedInstagram`, `ConnectedWhatsapp`) tracking individual tokens by page/waba identifiers.
+- Added `Conversation` and `Message` tables for thread tracking and webhook message deduplication.
 - No ChromaDB dependency in the current implementation.
 
 ## Important notes / Recommendations
@@ -45,8 +49,11 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 - If you want true tool-driven streaming (agent runs tools live and streams results), implement a structured agent loop that can call tools and stream intermediate outputs.
 - The store detail page at `/stores/{store_id}` renders an editable `products_items` JSON textarea and preloads the current store with `GET /api/store/{store_id}`.
 - The page template uses escaped braces for any literal JSON sample content so the Python f-string stays valid when the route is rendered.
-- The store detail page also shows each platform webhook URL for the current store and includes a copy button for quick pasting into external dashboards.
-- Each store now has a database-backed `verification_token`; webhook verification compares `hub.verify_token` against the store row instead of any global env token.
+- The store detail page also shows the global Meta webhook URL (`/api/webhooks/meta`) and individual Telegram URLs with copy buttons.
+- **Connection Mechanisms:** 
+  - Facebook and Instagram are connected via standard Facebook Login (OAuth) using `FB.login`.
+  - WhatsApp is connected using Meta's official Embedded Signup flow via `FB.login` requiring a backend code exchange.
+- **Verification:** Meta webhooks use a single global `META_VERIFY_TOKEN` configured via `.env`. Telegram still utilizes the per-store `verification_token`.
 
 ## Naming Status
 - Current active router is `app/routes/store.py` with `/api/store` endpoints.

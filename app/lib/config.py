@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     # File Uploads
     UPLOAD_DIR: str = "./uploads"
     MAX_FILE_SIZE_MB: int = 50
+
+    # Meta Integration
+    META_APP_ID: str = ""
+    META_APP_SECRET: str = ""
+    META_VERIFY_TOKEN: str = "bizzz_meta_webhook_token"
+    META_WHATSAPP_CONFIG_ID: str = ""
     
     @property
     def cors_origins_list(self) -> List[str]:

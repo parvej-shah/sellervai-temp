@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import logging
 
 from app.lib.config import settings
-from app.routes import auth, store, users, chat, setup, webhooks, documents, pages
+from app.routes import auth, store, users, chat, setup, webhooks, documents, pages, meta_connect
 
 # Configure logging
 logging.basicConfig(
@@ -43,6 +43,7 @@ app.include_router(users.router)
 app.include_router(chat.router)
 app.include_router(setup.router)
 app.include_router(webhooks.router)
+app.include_router(meta_connect.router)
 
 
 @app.get("/health")

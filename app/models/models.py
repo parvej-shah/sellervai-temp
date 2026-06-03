@@ -63,11 +63,10 @@ class Store(Base):
     
     # Relationships
     user = relationship("User", back_populates="stores")
-    messenger = relationship("Messenger", back_populates="store", uselist=False, cascade="all, delete-orphan")
-    whatsapp = relationship("WhatsApp", back_populates="store", uselist=False, cascade="all, delete-orphan")
+    facebook_page = relationship("ConnectedPage", back_populates="store", uselist=False, cascade="all, delete-orphan")
+    whatsapp = relationship("ConnectedWhatsapp", back_populates="store", uselist=False, cascade="all, delete-orphan")
     telegram = relationship("Telegram", back_populates="store", uselist=False, cascade="all, delete-orphan")
-    instagram = relationship("Instagram", back_populates="store", uselist=False, cascade="all, delete-orphan")
-    facebook_pages = relationship("FacebookPages", back_populates="store", uselist=False, cascade="all, delete-orphan")
+    instagram = relationship("ConnectedInstagram", back_populates="store", uselist=False, cascade="all, delete-orphan")
     documents = relationship("StoreDocument", back_populates="store", cascade="all, delete-orphan")
 
 
@@ -89,36 +88,30 @@ class StoreDocument(Base):
     store = relationship("Store", back_populates="documents")
 
 
-class Messenger(Base):
-    __tablename__ = "messenger"
+class ConnectedPage(Base):
+    __tablename__ = "connected_pages"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False, unique=True)
-    api_key = Column(String(500), nullable=False)  # Encrypted access token
-    page_id = Column(String(255), nullable=True)
-    added_date = Column(DateTime, default=datetime.utcnow, nullable=False)
-    webhook_added_date = Column(DateTime, nullable=True)
-    webhook_status = Column(SQLEnum(WebhookStatus), default=WebhookStatus.PENDING, nullable=False)
-    status = Column(SQLEnum(ServiceStatus), default=ServiceStatus.INACTIVE, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    page_id = Column(String(255), nullable=False, unique=True)
+    token = Column(String(500), nullable=False)  # Page token
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     # Relationships
-    store = relationship("Store", back_populates="messenger")
+    store = relationship("Store", back_populates="facebook_page")
+    user = relationship("User")
 
 
-class WhatsApp(Base):
-    __tablename__ = "whatsapp"
+class ConnectedWhatsapp(Base):
+    __tablename__ = "connected_whatsapp"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False, unique=True)
-    api_key = Column(String(500), nullable=False)  # Encrypted access token
-    phone_number_id = Column(String(255), nullable=True)
-    business_account_id = Column(String(255), nullable=True)
-    added_date = Column(DateTime, default=datetime.utcnow, nullable=False)
-    webhook_added_date = Column(DateTime, nullable=True)
-    webhook_status = Column(SQLEnum(WebhookStatus), default=WebhookStatus.PENDING, nullable=False)
-    status = Column(SQLEnum(ServiceStatus), default=ServiceStatus.INACTIVE, nullable=False)
+    waba_id = Column(String(255), nullable=False)
+    phone_number_id = Column(String(255), nullable=False, unique=True)
+    token = Column(String(500), nullable=True) # WhatsApp API token
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
@@ -144,17 +137,13 @@ class Telegram(Base):
     store = relationship("Store", back_populates="telegram")
 
 
-class Instagram(Base):
-    __tablename__ = "instagram"
+class ConnectedInstagram(Base):
+    __tablename__ = "connected_instagram"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False, unique=True)
-    api_key = Column(String(500), nullable=False)  # Encrypted access token
-    instagram_account_id = Column(String(255), nullable=True)
-    added_date = Column(DateTime, default=datetime.utcnow, nullable=False)
-    webhook_added_date = Column(DateTime, nullable=True)
-    webhook_status = Column(SQLEnum(WebhookStatus), default=WebhookStatus.PENDING, nullable=False)
-    status = Column(SQLEnum(ServiceStatus), default=ServiceStatus.INACTIVE, nullable=False)
+    ig_user_id = Column(String(255), nullable=False, unique=True)
+    token = Column(String(500), nullable=True) # IG Page Token
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
@@ -162,19 +151,29 @@ class Instagram(Base):
     store = relationship("Store", back_populates="instagram")
 
 
-class FacebookPages(Base):
-    __tablename__ = "facebook_pages"
+class Conversation(Base):
+    __tablename__ = "conversations"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False, unique=True)
-    api_key = Column(String(500), nullable=False)  # Encrypted access token
-    page_id = Column(String(255), nullable=True)
-    added_date = Column(DateTime, default=datetime.utcnow, nullable=False)
-    webhook_added_date = Column(DateTime, nullable=True)
-    webhook_status = Column(SQLEnum(WebhookStatus), default=WebhookStatus.PENDING, nullable=False)
-    status = Column(SQLEnum(ServiceStatus), default=ServiceStatus.INACTIVE, nullable=False)
+    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
+    platform = Column(String(50), nullable=False) # e.g., "messenger", "instagram", "whatsapp", "telegram"
+    sender_id = Column(String(255), nullable=False) # The customer's ID on that platform
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
-    # Relationships
-    store = relationship("Store", back_populates="facebook_pages")
+    store = relationship("Store")
+    messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
+
+
+class Message(Base):
+    __tablename__ = "messages"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
+    message_id = Column(String(255), nullable=False, unique=True) # Deduplication from Meta
+    text = Column(Text, nullable=True)
+    sender_type = Column(String(50), nullable=False) # "user", "bot", "agent"
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    conversation = relationship("Conversation", back_populates="messages")
+# Add token to models

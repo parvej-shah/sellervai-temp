@@ -1,401 +1,308 @@
-from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi import APIRouter, Request, HTTPException, Depends, BackgroundTasks, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
 import logging
-
-from app.lib.database import get_db
-from app.models.models import Messenger, WhatsApp, Telegram, Instagram, ServiceStatus, Store
-from app.services.message_processor import message_processor
 import httpx
+
+from app.lib.database import get_db, AsyncSessionLocal
+from app.models.models import ConnectedPage, ConnectedWhatsapp, ConnectedInstagram, Telegram, ServiceStatus, Store, Conversation, Message
+from app.services.message_processor import message_processor
+from app.lib.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/webhooks", tags=["Webhooks"])
 
 
-@router.get("/messenger/{store_id}")
-async def verify_messenger_webhook(
-    store_id: UUID,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """Verify Messenger webhook (Facebook verification)."""
+@router.get("/meta")
+async def verify_meta_webhook(request: Request):
+    """Verify Meta (Messenger, Instagram, WhatsApp) webhook."""
     mode = request.query_params.get("hub.mode")
     token = request.query_params.get("hub.verify_token")
     challenge = request.query_params.get("hub.challenge")
 
-    result = await db.execute(select(Store).filter(Store.id == store_id))
-    store = result.scalar_one_or_none()
+    # The verification token is defined globally in the app dashboard
+    # Use settings.META_VERIFY_TOKEN or a hardcoded value if not present
+    expected_token = getattr(settings, "META_VERIFY_TOKEN", "bizzz_meta_webhook_token")
 
-    if mode == "subscribe" and store and token == store.verification_token:
-        logger.info(f"Messenger webhook verified for store {store_id}")
+    if mode == "subscribe" and token == expected_token:
+        logger.info("Meta webhook verified")
         return int(challenge)
     
     raise HTTPException(status_code=403, detail="Verification failed")
 
 
-@router.post("/messenger/{store_id}")
-async def messenger_webhook(
-    store_id: UUID,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    logger.info(f"Processing Messenger webhook for store {store_id}")
-    """Handle incoming Messenger messages and events."""
-    try:
-        # Verify store and messenger config
-        result = await db.execute(
-            select(Messenger).filter(
-                Messenger.store_id == store_id,
-                Messenger.status == ServiceStatus.ACTIVE
-            )
-        )
-        messenger = result.scalar_one_or_none()
-        
-        if not messenger:
-            raise HTTPException(status_code=404, detail="Messenger not configured")
-        
-        # Parse webhook data
-        data = await request.json()
+@router.post("/meta")
+async def meta_webhook(request: Request, background_tasks: BackgroundTasks):
+    """Handle incoming Meta messages and events."""
+    data = await request.json()
+    logger.info(f"Received Meta webhook data: {data}")
+    
+    # Respond 200 immediately
+    background_tasks.add_task(process_meta_webhook, data)
+    
+    return Response(content="EVENT_RECEIVED", status_code=200)
 
-        logger.info(f"Received Messenger webhook data: {data}")
-        
-        if data.get("object") == "page":
-            for entry in data.get("entry", []):
-                for messaging_event in entry.get("messaging", []):
-                    sender_id = messaging_event.get("sender", {}).get("id")
+
+async def process_meta_webhook(data: dict):
+    async with AsyncSessionLocal() as db:
+        try:
+            object_type = data.get("object")
+            
+            if object_type in ("page", "instagram"):
+                for entry in data.get("entry", []):
+                    entry_id = entry.get("id")
                     
-                    # Handle message
-                    if messaging_event.get("message"):
-                        message_text = messaging_event["message"].get("text", "")
+                    platform = None
+                    store_id = None
+                    access_token = None
+                    
+                    if object_type == "page":
+                        result = await db.execute(select(ConnectedPage).filter(ConnectedPage.page_id == entry_id))
+                        page = result.scalar_one_or_none()
+                        if not page:
+                            continue
+                        platform = "messenger"
+                        store_id = page.store_id
+                        access_token = page.token
+                    else:
+                        result = await db.execute(select(ConnectedInstagram).filter(ConnectedInstagram.ig_user_id == entry_id))
+                        ig = result.scalar_one_or_none()
+                        if not ig:
+                            continue
+                        platform = "instagram"
+                        store_id = ig.store_id
+                        # Instagram uses the Page Token or its own token
+                        access_token = ig.token
+                        if not access_token:
+                            # Fallback to connected page token
+                            p_res = await db.execute(select(ConnectedPage).filter(ConnectedPage.store_id == store_id))
+                            p = p_res.scalar_one_or_none()
+                            if p:
+                                access_token = p.token
+
+                    if not access_token:
+                        logger.error(f"No access token found for {platform} store {store_id}")
+                        continue
                         
-                        if message_text:
-                            # Process message with AI
+                    for messaging_event in entry.get("messaging", []):
+                        sender_id = messaging_event.get("sender", {}).get("id")
+                        message = messaging_event.get("message", {})
+                        message_text = message.get("text", "")
+                        message_id = message.get("mid", "")
+                        
+                        if message_text and message_id:
+                            # Deduplicate
+                            existing = await db.execute(select(Message).filter(Message.message_id == message_id))
+                            if existing.scalar_one_or_none():
+                                continue
+                                
+                            # Upsert conversation
+                            conv_res = await db.execute(
+                                select(Conversation).filter(
+                                    Conversation.store_id == store_id,
+                                    Conversation.platform == platform,
+                                    Conversation.sender_id == sender_id
+                                )
+                            )
+                            conv = conv_res.scalar_one_or_none()
+                            if not conv:
+                                conv = Conversation(store_id=store_id, platform=platform, sender_id=sender_id)
+                                db.add(conv)
+                                await db.commit()
+                                await db.refresh(conv)
+                                
+                            # Save message
+                            msg = Message(conversation_id=conv.id, message_id=message_id, text=message_text, sender_type="user")
+                            db.add(msg)
+                            await db.commit()
+                            
+                            # Process with AI
                             response = await message_processor.process_message(
-                                platform="messenger",
+                                platform=platform,
                                 store_id=str(store_id),
                                 sender_id=sender_id,
                                 message_text=message_text,
                                 db=db
                             )
                             
-                            # Send response back via Messenger API
-                            await send_messenger_message(
-                                messenger.page_id,
-                                sender_id,
-                                response,
-                                messenger.api_key  # Access Token from DB
-                            )
-        
-        return {"status": "ok"}
-        
-    except Exception as e:
-        logger.error(f"Error processing Messenger webhook: {str(e)}")
-        return {"status": "error", "message": str(e)}
-
-
-async def send_messenger_message(page_id: str, recipient_id: str, message: str, access_token: str):
-    """Send a message via Messenger API."""
-    url = f"https://graph.facebook.com/v18.0/me/messages"
-    
-    payload = {
-        "recipient": {"id": recipient_id},
-        "message": {"text": message}
-    }
-    
-    params = {
-        "access_token": access_token
-    }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, params=params)
-        return response.json()
-
-
-@router.get("/whatsapp/{store_id}")
-async def verify_whatsapp_webhook(
-    store_id: UUID,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """Verify WhatsApp webhook."""
-    mode = request.query_params.get("hub.mode")
-    token = request.query_params.get("hub.verify_token")
-    challenge = request.query_params.get("hub.challenge")
-
-    result = await db.execute(select(Store).filter(Store.id == store_id))
-    store = result.scalar_one_or_none()
-
-    if mode == "subscribe" and store and token == store.verification_token:
-        logger.info(f"WhatsApp webhook verified for store {store_id}")
-        return int(challenge)
-    
-    raise HTTPException(status_code=403, detail="Verification failed")
-
-
-@router.post("/whatsapp/{store_id}")
-async def whatsapp_webhook(
-    store_id: UUID,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """Handle incoming WhatsApp messages."""
-    try:
-        result = await db.execute(
-            select(WhatsApp).filter(
-                WhatsApp.store_id == store_id,
-                WhatsApp.status == ServiceStatus.ACTIVE
-            )
-        )
-        whatsapp = result.scalar_one_or_none()
-        
-        if not whatsapp:
-            raise HTTPException(status_code=404, detail="WhatsApp not configured")
-        
-        data = await request.json()
-        
-        # Process WhatsApp webhook
-        for entry in data.get("entry", []):
-            for change in entry.get("changes", []):
-                value = change.get("value", {})
-                
-                for message in value.get("messages", []):
-                    sender = message.get("from")
-                    message_text = message.get("text", {}).get("body", "")
+                            # Reply
+                            url = f"https://graph.facebook.com/v18.0/me/messages"
+                            payload = {
+                                "recipient": {"id": sender_id},
+                                "message": {"text": response}
+                            }
+                            params = {"access_token": access_token}
+                            async with httpx.AsyncClient() as client:
+                                await client.post(url, json=payload, params=params)
+                                
+            elif object_type == "whatsapp_business_account":
+                for entry in data.get("entry", []):
+                    waba_id = entry.get("id")
                     
-                    if message_text:
-                        # Process message with AI
-                        response = await message_processor.process_message(
-                            platform="whatsapp",
-                            store_id=str(store_id),
-                            sender_id=sender,
-                            message_text=message_text,
-                            db=db
-                        )
+                    for change in entry.get("changes", []):
+                        value = change.get("value", {})
+                        phone_number_id = value.get("metadata", {}).get("phone_number_id")
                         
-                        # Send response back via WhatsApp API
-                        await send_whatsapp_message(
-                            whatsapp.phone_number_id,
-                            sender,
-                            response,
-                            whatsapp.api_key
+                        if not phone_number_id:
+                            continue
+                            
+                        # Lookup by phone_number_id (and waba_id)
+                        result = await db.execute(
+                            select(ConnectedWhatsapp).filter(
+                                ConnectedWhatsapp.phone_number_id == phone_number_id
+                            )
                         )
-        
-        return {"status": "ok"}
-        
-    except Exception as e:
-        logger.error(f"Error processing WhatsApp webhook: {str(e)}")
-        return {"status": "error", "message": str(e)}
+                        wa = result.scalar_one_or_none()
+                        
+                        if not wa:
+                            logger.error(f"WhatsApp account {phone_number_id} not found in DB")
+                            continue
+                            
+                        store_id = wa.store_id
+                        access_token = wa.token
+                        
+                        if not access_token:
+                            # Fallback to system env token if not in DB
+                            access_token = getattr(settings, "META_APP_TOKEN", None)
+                            
+                        if not access_token:
+                            logger.error("No access token for WhatsApp")
+                            continue
+                            
+                        for message in value.get("messages", []):
+                            sender = message.get("from")
+                            message_text = message.get("text", {}).get("body", "")
+                            message_id = message.get("id", "")
+                            
+                            if message_text and message_id:
+                                # Deduplicate
+                                existing = await db.execute(select(Message).filter(Message.message_id == message_id))
+                                if existing.scalar_one_or_none():
+                                    continue
+                                
+                                # Upsert conversation
+                                conv_res = await db.execute(
+                                    select(Conversation).filter(
+                                        Conversation.store_id == store_id,
+                                        Conversation.platform == "whatsapp",
+                                        Conversation.sender_id == sender
+                                    )
+                                )
+                                conv = conv_res.scalar_one_or_none()
+                                if not conv:
+                                    conv = Conversation(store_id=store_id, platform="whatsapp", sender_id=sender)
+                                    db.add(conv)
+                                    await db.commit()
+                                    await db.refresh(conv)
+                                    
+                                # Save message
+                                msg = Message(conversation_id=conv.id, message_id=message_id, text=message_text, sender_type="user")
+                                db.add(msg)
+                                await db.commit()
+                                
+                                # Process with AI
+                                response = await message_processor.process_message(
+                                    platform="whatsapp",
+                                    store_id=str(store_id),
+                                    sender_id=sender,
+                                    message_text=message_text,
+                                    db=db
+                                )
+                                
+                                # Reply via WhatsApp API
+                                url = f"https://graph.facebook.com/v18.0/{phone_number_id}/messages"
+                                payload = {
+                                    "messaging_product": "whatsapp",
+                                    "to": sender,
+                                    "text": {"body": response}
+                                }
+                                headers = {
+                                    "Authorization": f"Bearer {access_token}",
+                                    "Content-Type": "application/json"
+                                }
+                                async with httpx.AsyncClient() as client:
+                                    await client.post(url, json=payload, headers=headers)
+                                    
+        except Exception as e:
+            logger.error(f"Error processing Meta webhook task: {str(e)}")
 
 
-async def send_whatsapp_message(phone_number_id: str, recipient: str, message: str, access_token: str):
-    """Send a message via WhatsApp Business API."""
-    url = f"https://graph.facebook.com/v18.0/{phone_number_id}/messages"
-    
-    payload = {
-        "messaging_product": "whatsapp",
-        "to": recipient,
-        "text": {"body": message}
-    }
-    
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
-    }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, headers=headers)
-        return response.json()
-
-
-# Telegram Webhook
 @router.post("/telegram/{store_id}")
 async def telegram_webhook(
     store_id: UUID,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    background_tasks: BackgroundTasks
 ):
     """Handle incoming Telegram messages."""
-    try:
-        result = await db.execute(
-            select(Telegram).filter(
-                Telegram.store_id == store_id,
-                Telegram.status == ServiceStatus.ACTIVE
-            )
-        )
-        telegram = result.scalar_one_or_none()
-        
-        if not telegram:
-            raise HTTPException(status_code=404, detail="Telegram not configured")
-        
-        data = await request.json()
-        
-        # Process Telegram update
-        if "message" in data:
-            message = data["message"]
-            chat_id = message.get("chat", {}).get("id")
-            message_text = message.get("text", "")
-            
-            if message_text:
-                # Process message with AI
-                response = await message_processor.process_message(
-                    platform="telegram",
-                    store_id=str(store_id),
-                    sender_id=str(chat_id),
-                    message_text=message_text,
-                    db=db
+    data = await request.json()
+    background_tasks.add_task(process_telegram_webhook, store_id, data)
+    return {"status": "ok"}
+
+
+async def process_telegram_webhook(store_id: UUID, data: dict):
+    async with AsyncSessionLocal() as db:
+        try:
+            result = await db.execute(
+                select(Telegram).filter(
+                    Telegram.store_id == store_id,
+                    Telegram.status == ServiceStatus.ACTIVE
                 )
-                
-                # Send response back via Telegram API
-                await send_telegram_message(
-                    telegram.bot_token,
-                    chat_id,
-                    response
-                )
-        
-        return {"status": "ok"}
-        
-    except Exception as e:
-        logger.error(f"Error processing Telegram webhook: {str(e)}")
-        return {"status": "error", "message": str(e)}
-
-
-async def send_telegram_message(bot_token: str, chat_id: int, message: str):
-    """Send a message via Telegram Bot API."""
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    
-    payload = {
-        "chat_id": chat_id,
-        "text": message
-    }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload)
-        return response.json()
-
-
-@router.get("/instagram/{store_id}")
-async def verify_instagram_webhook(
-    store_id: UUID,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """Verify Instagram webhook."""
-    mode = request.query_params.get("hub.mode")
-    token = request.query_params.get("hub.verify_token")
-    challenge = request.query_params.get("hub.challenge")
-
-    result = await db.execute(select(Store).filter(Store.id == store_id))
-    store = result.scalar_one_or_none()
-
-    if mode == "subscribe" and store and token == store.verification_token:
-        logger.info(f"Instagram webhook verified for store {store_id}")
-        return int(challenge)
-    
-    raise HTTPException(status_code=403, detail="Verification failed")
-
-
-@router.post("/instagram/{store_id}")
-async def instagram_webhook(
-    store_id: UUID,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """Handle incoming Instagram messages and comments."""
-    try:
-        result = await db.execute(
-            select(Instagram).filter(
-                Instagram.store_id == store_id,
-                Instagram.status == ServiceStatus.ACTIVE
             )
-        )
-        instagram = result.scalar_one_or_none()
-        
-        if not instagram:
-            raise HTTPException(status_code=404, detail="Instagram not configured")
-        
-        data = await request.json()
-        
-        # Process Instagram webhook
-        for entry in data.get("entry", []):
-            for messaging_event in entry.get("messaging", []):
-                sender_id = messaging_event.get("sender", {}).get("id")
-                
-                # Handle message
-                if messaging_event.get("message"):
-                    message_text = messaging_event["message"].get("text", "")
-                    
-                    if message_text:
-                        response = await message_processor.process_message(
-                            platform="instagram",
-                            store_id=str(store_id),
-                            sender_id=sender_id,
-                            message_text=message_text,
-                            db=db
-                        )
-                        
-                        # Send response (similar to Messenger API)
-                        await send_instagram_message(
-                            instagram.instagram_account_id,
-                            sender_id,
-                            response,
-                            instagram.api_key
-                        )
+            telegram = result.scalar_one_or_none()
             
-            # Handle comments
-            for change in entry.get("changes", []):
-                if change.get("field") == "comments":
-                    value = change.get("value", {})
-                    comment_text = value.get("text", "")
-                    comment_id = value.get("id", "")
-                    
-                    if comment_text:
-                        response = await message_processor.process_comment(
-                            platform="instagram",
-                            store_id=str(store_id),
-                            post_id=value.get("media", {}).get("id", ""),
-                            commenter_id=value.get("from", {}).get("id", ""),
-                            comment_text=comment_text,
-                            db=db
-                        )
+            if not telegram:
+                return
+            
+            if "message" in data:
+                message = data["message"]
+                chat_id = message.get("chat", {}).get("id")
+                message_text = message.get("text", "")
+                message_id = str(message.get("message_id", ""))
+                
+                if message_text and message_id:
+                    # Deduplicate
+                    existing = await db.execute(select(Message).filter(Message.message_id == message_id))
+                    if existing.scalar_one_or_none():
+                        return
                         
-                        # Reply to comment
-                        await reply_instagram_comment(
-                            comment_id,
-                            response,
-                            instagram.api_key
+                    # Upsert conversation
+                    conv_res = await db.execute(
+                        select(Conversation).filter(
+                            Conversation.store_id == store_id,
+                            Conversation.platform == "telegram",
+                            Conversation.sender_id == str(chat_id)
                         )
-        
-        return {"status": "ok"}
-        
-    except Exception as e:
-        logger.error(f"Error processing Instagram webhook: {str(e)}")
-        return {"status": "error", "message": str(e)}
+                    )
+                    conv = conv_res.scalar_one_or_none()
+                    if not conv:
+                        conv = Conversation(store_id=store_id, platform="telegram", sender_id=str(chat_id))
+                        db.add(conv)
+                        await db.commit()
+                        await db.refresh(conv)
+                        
+                    msg = Message(conversation_id=conv.id, message_id=message_id, text=message_text, sender_type="user")
+                    db.add(msg)
+                    await db.commit()
+                    
+                    # Process with AI
+                    response = await message_processor.process_message(
+                        platform="telegram",
+                        store_id=str(store_id),
+                        sender_id=str(chat_id),
+                        message_text=message_text,
+                        db=db
+                    )
+                    
+                    # Send response
+                    url = f"https://api.telegram.org/bot{telegram.bot_token}/sendMessage"
+                    payload = {
+                        "chat_id": chat_id,
+                        "text": response
+                    }
+                    async with httpx.AsyncClient() as client:
+                        await client.post(url, json=payload)
+                        
+        except Exception as e:
+            logger.error(f"Error processing Telegram webhook: {str(e)}")
 
-
-async def send_instagram_message(account_id: str, recipient_id: str, message: str, access_token: str):
-    """Send a message via Instagram API."""
-    url = f"https://graph.facebook.com/v18.0/me/messages"
-    
-    payload = {
-        "recipient": {"id": recipient_id},
-        "message": {"text": message}
-    }
-    
-    params = {"access_token": access_token}
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, params=params)
-        return response.json()
-
-
-async def reply_instagram_comment(comment_id: str, message: str, access_token: str):
-    """Reply to an Instagram comment."""
-    url = f"https://graph.facebook.com/v18.0/{comment_id}/replies"
-    
-    payload = {"message": message}
-    params = {"access_token": access_token}
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, params=params)
-        return response.json()
