@@ -4,8 +4,11 @@ from fastapi.responses import JSONResponse
 import logging
 
 from app.lib.config import settings
-from app.routes import auth, store, users, chat, setup, webhooks, documents, pages, meta_connect
+from app.routes import auth, store, users, chat, setup, webhooks, documents, pages, meta_connect, posts
 from app.routes import products, coupons, orders
+
+from apscheduler.schedulers.background import BackgroundScheduler
+from contextlib import asynccontextmanager
 
 # Configure logging
 logging.basicConfig(
@@ -35,6 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Include routers
 app.include_router(pages.router)
 app.include_router(auth.router)
@@ -48,12 +52,23 @@ app.include_router(meta_connect.router)
 app.include_router(products.router)
 app.include_router(coupons.router)
 app.include_router(orders.router)
+app.include_router(posts.router)
 
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+@app.get("/ping")
+def ping_endpoint():
+    return {"status": "alive", "message": "Keep-alive request received successfully!"}
+
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to your persistent FastAPI application!"}
 
 
 @app.exception_handler(Exception)
@@ -64,6 +79,24 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"detail": "Internal server error"}
     )
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler = BackgroundScheduler()
+    
+    scheduler.add_job(self_ping_task, "interval", minutes=10)
+    scheduler.start()
+    logger.info("APScheduler started successfully.")
+
+    # To access in other routes
+    # [Here] app.state.scheduler = scheduler
+    # [there] scheduler = request.app.state.scheduler
+    
+    yield  # App Runs
+    
+    scheduler.shutdown()
+    logger.info("APScheduler stopped.")
 
 
 if __name__ == "__main__":

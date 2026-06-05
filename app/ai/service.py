@@ -17,7 +17,6 @@ from app.models.models import (
 
 logger = logging.getLogger(__name__)
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -577,7 +576,9 @@ class AIService:
         """Non-streaming chat."""
         response = ""
         async for chunk in self.chat_stream(
-            message, store_id, db,
+            message, 
+            store_id, 
+            db,
             conversation_id=conversation_id,
             sender_id=sender_id,
             platform=platform,
@@ -585,6 +586,24 @@ class AIService:
         ):
             response += chunk
         return response
+
+
+    async def generate_text(self, prompt: str) -> str:
+        """Utility for one-off text generation."""
+        try:
+            print(f"Generating text with prompt: {prompt}")
+            # ainvoke takes a list of messages directly
+            response = await self.llm.ainvoke([HumanMessage(content=prompt)])
+            print(f"Generation response: {response}")
+            
+            # response is an AIMessage object, extract content safely
+            if response and hasattr(response, 'content'):
+                return response.content
+            return ""
+        except Exception as e:
+            logger.error(f"Error in generate_text: {str(e)}")
+            return ""
+
 
     async def create_order_from_chat(
         self,

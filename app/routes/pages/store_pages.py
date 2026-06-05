@@ -5,7 +5,6 @@ from app.lib.config import settings
 
 router = APIRouter()
 
-
 @router.get("/stores/{store_id}", response_class=HTMLResponse)
 async def store_detail(store_id: str):
     body = f"""
@@ -14,6 +13,7 @@ async def store_detail(store_id: str):
 <div class="actions">
   <a class="button secondary" href="/dashboard">Back to dashboard</a>
   <a class="button secondary" href="/orders">Orders placeholder</a>
+  <a class="button" href="/posts/{store_id}">📱 Post Management</a>
   <button type="button" class="secondary" onclick="logout()">Logout</button>
 </div>
 
@@ -209,7 +209,7 @@ async def store_detail(store_id: str):
       appId      : '{settings.META_APP_ID}',
       cookie     : true,
       xfbml      : true,
-      version    : 'v18.0'
+      version    : 'v25.0'
     }});
   }};
 </script>

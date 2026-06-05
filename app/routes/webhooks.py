@@ -5,10 +5,13 @@ from uuid import UUID
 import logging
 import httpx
 
+
 from app.lib.database import get_db, AsyncSessionLocal
-from app.models.models import ConnectedPage, ConnectedWhatsapp, ConnectedInstagram, Telegram, ServiceStatus, Store, Conversation, Message
+from app.models.models import ConnectedPage, ConnectedWhatsapp, ConnectedInstagram, Telegram, ServiceStatus, Store, Conversation, Message, PagePost, PostComment
 from app.services.message_processor import message_processor
+from app.services.post_management import post_management_service
 from app.lib.config import settings
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/webhooks", tags=["Webhooks"])
@@ -131,14 +134,37 @@ async def process_meta_webhook(data: dict):
                             )
                             
                             # Reply
-                            url = f"https://graph.facebook.com/v18.0/me/messages"
+                            url = f"https://graph.facebook.com/v25.0/me/messages"
                             payload = {
                                 "recipient": {"id": sender_id},
                                 "message": {"text": response}
                             }
                             params = {"access_token": access_token}
                             async with httpx.AsyncClient() as client:
-                                await client.post(url, json=payload, params=params)
+                                response = await client.post(url, json=payload, params=params)
+                                logger.error(f"Meta API error: {response.status_code} - {response.text}")
+                    
+                    # Handle feed events (new posts and comments)
+                    for change in entry.get("changes", []):
+                        if change.get("field") != "feed":
+                            continue
+                        
+                        value = change.get("value", {})
+                        item_type = value.get("item")
+                        verb = value.get("verb")
+                        
+                        if item_type == "status" and verb == "add":
+                            # New post detected
+                            await handle_new_post(
+                                db, store_id, entry_id, value, access_token
+                            )
+                        
+                        elif item_type == "comment" and verb == "add":
+                            # New comment on a post
+                            await handle_new_post_comment(
+                                db, store_id, entry_id, value, access_token
+                            )
+                                
                                 
             elif object_type == "whatsapp_business_account":
                 for entry in data.get("entry", []):
@@ -215,7 +241,7 @@ async def process_meta_webhook(data: dict):
                                 )
                                 
                                 # Reply via WhatsApp API
-                                url = f"https://graph.facebook.com/v18.0/{phone_number_id}/messages"
+                                url = f"https://graph.facebook.com/v25.0/{phone_number_id}/messages"
                                 payload = {
                                     "messaging_product": "whatsapp",
                                     "to": sender,
@@ -310,3 +336,130 @@ async def process_telegram_webhook(store_id: UUID, data: dict):
         except Exception as e:
             logger.error(f"Error processing Telegram webhook: {str(e)}")
 
+
+# ---------------------------------------------------------------------------
+# Post Management Handlers
+# ---------------------------------------------------------------------------
+
+async def handle_new_post(
+    db: AsyncSession,
+    store_id: UUID,
+    page_id: str,
+    value: dict,
+    page_token: str,
+):
+    """Handle a new post detected on a connected page."""
+    try:
+        post_id = value.get("post_id")
+        message = value.get("message", "")
+
+        if not post_id:
+            logger.warning("Post ID missing from feed change")
+            return
+
+        logger.info(f"New post detected: {post_id}")
+
+        # Extract image and text from image
+        image_url, image_text = await post_management_service.extract_post_image_text(
+            post_id, page_token
+        )
+
+        # Generate initial knowledge from post content
+        initial_knowledge = await post_management_service.generate_initial_knowledge(
+            message, image_text
+        )
+
+        # Save post to database
+        await post_management_service.save_new_post(
+            db,
+            store_id=store_id,
+            page_id=page_id,
+            post_id=post_id,
+            message=message,
+            image_url=image_url,
+            image_text=image_text,
+            knowledge=initial_knowledge,
+        )
+
+        logger.info(f"Post {post_id} saved with initial knowledge")
+
+    except Exception as e:
+        logger.error(f"Error handling new post: {str(e)}")
+
+
+async def handle_new_post_comment(
+    db: AsyncSession,
+    store_id: UUID,
+    page_id: str,
+    value: dict,
+    page_token: str,
+):
+    """Handle a new comment on a post."""
+    try:
+        post_id = value.get("post_id")
+        comment_id = value.get("comment_id")
+        sender_id = value.get("from", {}).get("id")
+        sender_name = value.get("from", {}).get("name")
+        comment_text = value.get("message", "")
+
+        if not (post_id and comment_id and sender_id and comment_text):
+            logger.warning("Missing required fields for comment")
+            return
+
+        logger.info(f"New comment detected: {comment_id} on post {post_id}")
+
+        # Check if should reply to this comment
+        should_reply = await post_management_service.should_reply_to_comment(db, store_id, post_id)
+
+        reply_text = None
+
+        if should_reply:
+            # Get post knowledge
+            result = await db.execute(
+                select(PagePost).filter(PagePost.post_id == post_id)
+            )
+            post = result.scalar_one_or_none()
+
+            if post and post.knowledge:
+                # Get store context
+                store_result = await db.execute(select(Store).filter(Store.id == store_id))
+                store = store_result.scalar_one_or_none()
+
+                if store:
+                    # Generate reply
+                    reply_text = await post_management_service.generate_comment_reply(
+                        comment_text=comment_text,
+                        post_knowledge=post.knowledge,
+                        store_context={
+                            "personality_prompt": store.personality_prompt or "",
+                            "tone": store.tone or "friendly",
+                        },
+                    )
+
+                    # Post the reply
+                    if reply_text:
+                        success = await post_management_service.post_comment_reply(
+                            comment_id, reply_text, page_token
+                        )
+                        if not success:
+                            reply_text = None
+
+        # Save comment to database
+        await post_management_service.save_comment_and_reply(
+            db,
+            post_id=post_id,
+            store_id=store_id,
+            comment_id=comment_id,
+            sender_id=sender_id,
+            sender_name=sender_name,
+            text=comment_text,
+            reply_text=reply_text,
+        )
+
+        logger.info(
+            f"Comment {comment_id} processed. "
+            f"Reply: {'sent' if reply_text else 'skipped'}"
+        )
+
+    except Exception as e:
+        logger.error(f"Error handling post comment: {str(e)}")

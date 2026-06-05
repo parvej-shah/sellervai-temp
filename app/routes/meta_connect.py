@@ -37,7 +37,7 @@ async def connect_facebook(
         
     async with httpx.AsyncClient() as client:
         # Get Pages
-        pages_url = f"https://graph.facebook.com/v18.0/me/accounts?access_token={user_access_token}"
+        pages_url = f"https://graph.facebook.com/v25.0/me/accounts?access_token={user_access_token}"
         resp = await client.get(pages_url)
         data = resp.json()
         
@@ -52,8 +52,8 @@ async def connect_facebook(
             page_token = page["access_token"]
             
             # Subscribe webhook
-            sub_url = f"https://graph.facebook.com/v18.0/{page_id}/subscribed_apps"
-            sub_payload = {"subscribed_fields": "messages,messaging_postbacks", "access_token": page_token}
+            sub_url = f"https://graph.facebook.com/v25.0/{page_id}/subscribed_apps"
+            sub_payload = {"subscribed_fields": "messages,messaging_postbacks,feed,pages_read_engagement,pages_manage_posts,public_profile", "access_token": page_token}
             await client.post(sub_url, data=sub_payload)
             
             # Save to DB
@@ -76,7 +76,7 @@ async def connect_facebook(
             
             if connect_instagram:
                 # Get IG account
-                ig_url = f"https://graph.facebook.com/v18.0/{page_id}?fields=instagram_business_account&access_token={page_token}"
+                ig_url = f"https://graph.facebook.com/v25.0/{page_id}?fields=instagram_business_account&access_token={page_token}"
                 ig_resp = await client.get(ig_url)
                 ig_data = ig_resp.json()
                 
@@ -85,8 +85,8 @@ async def connect_facebook(
                     ig_user_id = ig_account["id"]
                     
                     # Subscribe IG webhook
-                    ig_sub_url = f"https://graph.facebook.com/v18.0/{ig_user_id}/subscribed_apps"
-                    ig_sub_payload = {"subscribed_fields": "messages,comments", "access_token": page_token}
+                    ig_sub_url = f"https://graph.facebook.com/v25.0/{ig_user_id}/subscribed_apps"
+                    ig_sub_payload = {"subscribed_fields": "messages,comments,feed,pages_read_engagement,pages_manage_posts,public_profile", "access_token": page_token}
                     await client.post(ig_sub_url, data=ig_sub_payload)
                     
                     # Save to DB
@@ -128,7 +128,7 @@ async def connect_whatsapp(
         
     async with httpx.AsyncClient() as client:
         # Exchange code for token
-        token_url = f"https://graph.facebook.com/v18.0/oauth/access_token?client_id={settings.META_APP_ID}&client_secret={settings.META_APP_SECRET}&code={code}"
+        token_url = f"https://graph.facebook.com/v25.0/oauth/access_token?client_id={settings.META_APP_ID}&client_secret={settings.META_APP_SECRET}&code={code}"
         token_res = await client.get(token_url)
         token_data = token_res.json()
         if "error" in token_data:
@@ -137,7 +137,7 @@ async def connect_whatsapp(
         user_token = token_data.get("access_token")
 
         # Get WABA ID
-        waba_url = f"https://graph.facebook.com/v18.0/me/businesses?access_token={user_token}"
+        waba_url = f"https://graph.facebook.com/v25.0/me/businesses?access_token={user_token}"
         waba_res = await client.get(waba_url)
         waba_data = waba_res.json()
         if not waba_data.get("data"):
@@ -145,7 +145,7 @@ async def connect_whatsapp(
         waba_id = waba_data["data"][0]["id"]
 
         # Get phone number ID
-        phone_url = f"https://graph.facebook.com/v18.0/{waba_id}/phone_numbers?access_token={user_token}"
+        phone_url = f"https://graph.facebook.com/v25.0/{waba_id}/phone_numbers?access_token={user_token}"
         phone_res = await client.get(phone_url)
         phone_data = phone_res.json()
         if not phone_data.get("data"):
@@ -153,7 +153,7 @@ async def connect_whatsapp(
         phone_number_id = phone_data["data"][0]["id"]
         
         # Subscribe webhook
-        sub_url = f"https://graph.facebook.com/v18.0/{waba_id}/subscribed_apps"
+        sub_url = f"https://graph.facebook.com/v25.0/{waba_id}/subscribed_apps"
         sub_payload = {"access_token": user_token}
         await client.post(sub_url, data=sub_payload)
         
@@ -194,9 +194,78 @@ async def disconnect_facebook(
         
     async with httpx.AsyncClient() as client:
         # Delete subscription
-        sub_url = f"https://graph.facebook.com/v18.0/{page_id}/subscribed_apps"
+        sub_url = f"https://graph.facebook.com/v25.0/{page_id}/subscribed_apps"
         await client.delete(sub_url, params={"access_token": page.token})
         
     await db.delete(page)
     await db.commit()
     return {"status": "success"}
+
+
+# ============================================================================
+# Get Connected Pages and Accounts
+# ============================================================================
+
+@router.get("/connected-pages/{store_id}")
+async def get_connected_pages(
+    store_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all connected Facebook pages for a store."""
+    # Verify store ownership
+    result = await db.execute(
+        select(Store).filter(Store.id == store_id, Store.user_id == current_user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    # Get connected pages
+    pages_result = await db.execute(
+        select(ConnectedPage).filter(ConnectedPage.store_id == store_id)
+    )
+    pages = pages_result.scalars().all()
+    
+    return {
+        "pages": [
+            {
+                "page_id": page.page_id,
+                "page_name": page.page_id,  # In future, fetch from Meta API for display name
+                "token": page.token,
+            }
+            for page in pages
+        ]
+    }
+
+
+@router.get("/connected-instagram/{store_id}")
+async def get_connected_instagram(
+    store_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all connected Instagram accounts for a store."""
+    # Verify store ownership
+    result = await db.execute(
+        select(Store).filter(Store.id == store_id, Store.user_id == current_user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    # Get connected Instagram accounts
+    ig_result = await db.execute(
+        select(ConnectedInstagram).filter(ConnectedInstagram.store_id == store_id)
+    )
+    accounts = ig_result.scalars().all()
+    
+    return {
+        "accounts": [
+            {
+                "ig_user_id": account.ig_user_id,
+                "ig_username": account.ig_user_id,  # In future, fetch from Meta API for display name
+                "token": account.token,
+            }
+            for account in accounts
+        ]
+    }
+

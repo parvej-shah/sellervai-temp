@@ -49,6 +49,17 @@ class ResponseLanguage(str, enum.Enum):
     ENGLISH = "english"
 
 
+class PostType(str, enum.Enum):
+    PRODUCT = "product"
+    MEME = "meme"
+    QUOTE = "quote"
+
+
+class PostSource(str, enum.Enum):
+    WEBHOOK = "webhook"      # Received from social media platform
+    GENERATED = "generated"  # Created by user via dashboard
+
+
 # ---------------------------------------------------------------------------
 # Core user / auth
 # ---------------------------------------------------------------------------
@@ -355,19 +366,34 @@ class Message(Base):
 # ---------------------------------------------------------------------------
 
 class PagePost(Base):
-    """Tracks posts from connected Facebook Pages."""
+    """Tracks posts from connected Facebook Pages and user-generated posts."""
     __tablename__ = "page_posts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
     page_id = Column(String(255), nullable=False)
     post_id = Column(String(255), nullable=False, unique=True, index=True)
+    
+    # Platform where post is/was published
+    platform = Column(String(50), nullable=False)  # "facebook", "instagram", etc.
+    
+    # Post type and source
+    post_type = Column(SQLEnum(PostType), nullable=False)           # product, meme, quote
+    post_source = Column(SQLEnum(PostSource), default=PostSource.WEBHOOK, nullable=False)  # webhook or generated
+    
+    # Post content
     message = Column(Text, nullable=True)                          # post text
     image_url = Column(String(500), nullable=True)                 # image URL if present
     image_text = Column(Text, nullable=True)                       # OCR/vision extracted text from image
+    
+    # For product posts
+    product_id = Column(UUID(as_uuid=True), nullable=True)         # reference to product if post_type=product
+    
+    # AI context
     knowledge = Column(Text, nullable=True)                        # user-updated knowledge for this post
     knowledge_updated = Column(Boolean, default=False, nullable=False)  # user reviewed/updated?
     autopilot_paused = Column(Boolean, default=False, nullable=False)   # user paused this post?
+    
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
