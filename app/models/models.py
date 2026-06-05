@@ -96,6 +96,9 @@ class Store(Base):
     # Order config
     orders_enabled = Column(Boolean, default=True, nullable=False)
 
+    # Post management / autopilot
+    autopilot_enabled = Column(Boolean, default=False, nullable=False)
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -109,6 +112,8 @@ class Store(Base):
     products = relationship("Product", back_populates="store", cascade="all, delete-orphan")
     coupons = relationship("Coupon", back_populates="store", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="store", cascade="all, delete-orphan")
+    page_posts = relationship("PagePost", back_populates="store", cascade="all, delete-orphan")
+    post_comments = relationship("PostComment", back_populates="store", cascade="all, delete-orphan")
 
 
 # ---------------------------------------------------------------------------
@@ -343,3 +348,47 @@ class Message(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     conversation = relationship("Conversation", back_populates="messages")
+
+
+# ---------------------------------------------------------------------------
+# Post Management / Autopilot
+# ---------------------------------------------------------------------------
+
+class PagePost(Base):
+    """Tracks posts from connected Facebook Pages."""
+    __tablename__ = "page_posts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
+    page_id = Column(String(255), nullable=False)
+    post_id = Column(String(255), nullable=False, unique=True, index=True)
+    message = Column(Text, nullable=True)                          # post text
+    image_url = Column(String(500), nullable=True)                 # image URL if present
+    image_text = Column(Text, nullable=True)                       # OCR/vision extracted text from image
+    knowledge = Column(Text, nullable=True)                        # user-updated knowledge for this post
+    knowledge_updated = Column(Boolean, default=False, nullable=False)  # user reviewed/updated?
+    autopilot_paused = Column(Boolean, default=False, nullable=False)   # user paused this post?
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    store = relationship("Store", back_populates="page_posts")
+    comments = relationship("PostComment", back_populates="page_post", cascade="all, delete-orphan")
+
+
+class PostComment(Base):
+    """Tracks comments on posts and responses."""
+    __tablename__ = "post_comments"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    post_id = Column(String(255), ForeignKey("page_posts.post_id", ondelete="CASCADE"), nullable=False)
+    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
+    comment_id = Column(String(255), nullable=False, unique=True, index=True)
+    sender_id = Column(String(255), nullable=False)
+    sender_name = Column(String(255), nullable=True)
+    text = Column(Text, nullable=False)
+    replied = Column(Boolean, default=False, nullable=False)
+    reply_text = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    page_post = relationship("PagePost", back_populates="comments")
+    store = relationship("Store", back_populates="post_comments")
