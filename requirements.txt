@@ -7,7 +7,7 @@ passlib[bcrypt,argon2]==1.7.4
 python-dotenv==1.0.0
 
 # Scheduing
-apscheduler=3.11.2
+apscheduler==3.11.2
 
 # Database
 sqlalchemy==2.0.25

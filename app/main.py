@@ -22,7 +22,7 @@ logger.info(f"[ENV] Enviroment: {settings.ENVIRONMENT}")
 
 # Create FastAPI app
 app = FastAPI(
-    title="Bizzz Backend API",
+    title="Sellervai Backend API",
     description="Multi-platform messaging integration with AI-powered chat (DeepSeek + RAG)",
     version="2.0.0",
     docs_url= "/docs"  if settings.ENVIRONMENT == "development" else None,
@@ -85,7 +85,7 @@ async def global_exception_handler(request, exc):
 async def lifespan(app: FastAPI):
     scheduler = BackgroundScheduler()
     
-    scheduler.add_job(self_ping_task, "interval", minutes=10)
+    scheduler.add_job(self_ping_task, "interval", second=1)
     scheduler.start()
     logger.info("APScheduler started successfully.")
 
