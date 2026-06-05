@@ -138,7 +138,7 @@ Just provide the post text, no explanations."""
                     return ""
 
         except Exception as e:
-            logger.error(f"Error publishing to Facebook: {str(e)}")
+            logger.error(f"Error publishing to Facebook: {repr(e)}", exc_info=True)
             return ""
 
     async def publish_to_instagram(

@@ -184,6 +184,7 @@ async def store_detail(store_id: str):
 
 <section>
   <h2>Telegram Connection</h2>
+  <div id="telegram-connections-list" style="margin-bottom: 12px;"></div>
   <form class="connection-form" data-platform="telegram">
     <label>Telegram bot token
       <input name="bot_token" value="demo-telegram-token" required>
@@ -293,6 +294,7 @@ document.querySelectorAll(".connection-form").forEach((form) => {{
     try {{
       await fetchJson(`/api/setup/${{platform}}/{store_id}/api-key`, {{ method: "POST", headers: {{"Content-Type":"application/json"}}, body: JSON.stringify(payload) }});
       setMessage("connection-message", `${{platform}} saved.`);
+      if (platform === "telegram") loadConnections();
     }} catch (error) {{ setMessage("connection-message", error.message || `Saving ${{platform}} failed`); }}
   }});
 }});
@@ -533,6 +535,14 @@ async function loadConnections() {{
         }} else {{
             waList.innerHTML = `<p class="muted small">No WhatsApp accounts connected.</p>`;
         }}
+
+        const tgRes = await fetchJson(`/api/setup/telegram/{store_id}`);
+        const tgList = document.getElementById("telegram-connections-list");
+        if (tgRes.connections && tgRes.connections.length) {{
+            tgList.innerHTML = tgRes.connections.map(p => `<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;"><span style="flex:1;">🤖 ${{p.bot_username}}</span><button class="secondary" style="padding:4px 8px;font-size:12px;color:#f66;" onclick="disconnectTelegram('${{p.id}}')">🗑️ Disconnect</button></div>`).join("");
+        }} else {{
+            tgList.innerHTML = `<p class="muted small">No Telegram bots connected.</p>`;
+        }}
     }} catch(e) {{
         console.error("Error loading connections", e);
     }}
@@ -556,6 +566,13 @@ async function disconnectWhatsApp(phone_number_id) {{
     if(!confirm("Disconnect this WhatsApp Account?")) return;
     try {{
         await fetchJson(`/api/meta/disconnect-whatsapp/{store_id}/${{phone_number_id}}`, {{method: 'DELETE'}});
+        loadConnections();
+    }} catch(e) {{ alert(e.message); }}
+}}
+async function disconnectTelegram(telegram_id) {{
+    if(!confirm("Disconnect this Telegram Bot?")) return;
+    try {{
+        await fetchJson(`/api/setup/telegram/{store_id}/${{telegram_id}}`, {{method: 'DELETE'}});
         loadConnections();
     }} catch(e) {{ alert(e.message); }}
 }}
@@ -592,7 +609,10 @@ document.getElementById("btn-connect-facebook")?.addEventListener("click", async
         }} else {{
             setMessage("connection-message", "Facebook login cancelled or failed.");
         }}
-    }}, {{scope: 'pages_show_list,pages_messaging,pages_read_engagement,pages_manage_posts,ads_management,public_profile'}});
+    }}, {{
+      scope: 'public_profile,pages_show_list,pages_messaging,pages_read_engagement,pages_manage_posts,pages_manage_metadata,pages_read_user_content'
+    }});
+    // TODO: ads_management should be added later
 }});
 
 // Meta Connect JS - Instagram (OAuth)
@@ -626,7 +646,8 @@ document.getElementById("btn-connect-instagram-oauth")?.addEventListener("click"
         }} else {{
             setMessage("connection-message", "Instagram login cancelled or failed.");
         }}
-    }}, {{scope: 'pages_show_list,pages_messaging,pages_read_engagement,pages_manage_posts,ads_management,instagram_basic,instagram_manage_messages,instagram_manage_comments,instagram_content_publish,public_profile'}});
+    }}, {{scope: 'pages_show_list,pages_messaging,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments,instagram_content_publish,public_profile,pages_manage_posts'}});
+    // TODO: ads_management will be added later
 }});
 
 // Meta Connect JS - Instagram (Manual Token Fallback)
@@ -678,7 +699,7 @@ document.getElementById("btn-connect-whatsapp")?.addEventListener("click", async
             }}).then(() => {{
                 setMessage("connection-message", "WhatsApp connected successfully.");
                 loadConnections();
-            }}).catch((error) {{
+            }}).catch((error) => {{
                 setMessage("connection-message", error.message || "Failed to connect WhatsApp.");
             }});
         }} else {{

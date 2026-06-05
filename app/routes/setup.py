@@ -102,3 +102,58 @@ async def setup_telegram_webhook(
         verified=True,
         message="Webhook verified and activated successfully"
     )
+
+@router.get("/telegram/{store_id}")
+async def get_telegram_connections(
+    store_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all telegram connections for a store."""
+    result = await db.execute(
+        select(Store).filter(Store.id == store_id, Store.user_id == current_user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    tg_result = await db.execute(
+        select(Telegram).filter(Telegram.store_id == store_id)
+    )
+    connections = tg_result.scalars().all()
+    
+    return {
+        "connections": [
+            {
+                "id": str(conn.id),
+                "bot_username": conn.bot_username or "Unknown Bot",
+                "status": conn.status,
+                "webhook_status": conn.webhook_status
+            }
+            for conn in connections
+        ]
+    }
+
+@router.delete("/telegram/{store_id}/{telegram_id}")
+async def delete_telegram_connection(
+    store_id: UUID,
+    telegram_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete a telegram connection."""
+    result = await db.execute(
+        select(Store).filter(Store.id == store_id, Store.user_id == current_user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    tg_result = await db.execute(
+        select(Telegram).filter(Telegram.id == telegram_id, Telegram.store_id == store_id)
+    )
+    conn = tg_result.scalar_one_or_none()
+    if not conn:
+        raise HTTPException(status_code=404, detail="Telegram connection not found")
+        
+    await db.delete(conn)
+    await db.commit()
+    return {"status": "success"}

@@ -5,13 +5,14 @@ Post management API routes.
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
 from uuid import UUID
 from typing import List, Optional
 from pydantic import BaseModel
 
 from app.lib.database import get_db
 from app.lib.auth import get_current_user
-from app.models.models import User, Store, PagePost, PostComment, ConnectedPage, ConnectedInstagram
+from app.models.models import User, Store, PagePost, PostComment, ConnectedPage, ConnectedInstagram, PostType
 from app.services.post_generation import post_generation_service
 
 
@@ -112,7 +113,9 @@ async def get_store_posts(
         raise HTTPException(status_code=404, detail="Store not found")
 
     posts_result = await db.execute(
-        select(PagePost).filter(PagePost.store_id == store_id)
+        select(PagePost)
+            .filter(PagePost.store_id == store_id)
+            .options(selectinload(PagePost.comments))
     )
     posts = posts_result.scalars().all()
 
@@ -449,6 +452,9 @@ async def publish_post(
             post_id = await post_generation_service.publish_to_facebook(
                 page_id, payload.post_text, page.token
             )
+            
+            print("Post Type: ", payload.post_type, PostType(payload.post_type.upper()))
+
 
             if post_id:
                 # Save to database
@@ -459,7 +465,7 @@ async def publish_post(
                     post_id=post_id,
                     post_text=payload.post_text,
                     platform="facebook",
-                    post_type=payload.post_type,
+                    post_type=PostType(payload.post_type.upper()),
                     product_id=payload.product_id,
                 )
                 published_posts.append({
@@ -493,7 +499,7 @@ async def publish_post(
                     post_id=post_id,
                     post_text=payload.post_text,
                     platform="instagram",
-                    post_type=payload.post_type,
+                    post_type=PostType(payload.post_type.upper()),
                     product_id=payload.product_id,
                 )
                 published_posts.append({

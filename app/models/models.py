@@ -44,20 +44,20 @@ class OrderStatus(str, enum.Enum):
 
 
 class ResponseLanguage(str, enum.Enum):
-    ADAPTIVE = "adaptive"
-    BANGLA = "bangla"
-    ENGLISH = "english"
+    ADAPTIVE = "ADAPTIVE"
+    BANGLA = "BANGLA"
+    ENGLISH = "ENGLISH"
 
 
 class PostType(str, enum.Enum):
-    PRODUCT = "product"
-    MEME = "meme"
-    QUOTE = "quote"
+    PRODUCT = "PRODUCT"
+    MEME = "MEME"
+    QUOTE = "QUOTE"
 
 
 class PostSource(str, enum.Enum):
-    WEBHOOK = "webhook"      # Received from social media platform
-    GENERATED = "generated"  # Created by user via dashboard
+    WEBHOOK = "WEBHOOK"      # Received from social media platform
+    GENERATED = "GENERATED"  # Created by user via dashboard
 
 
 # ---------------------------------------------------------------------------
@@ -115,10 +115,10 @@ class Store(Base):
 
     # Relationships
     user = relationship("User", back_populates="stores")
-    facebook_page = relationship("ConnectedPage", back_populates="store", uselist=False, cascade="all, delete-orphan")
-    whatsapp = relationship("ConnectedWhatsapp", back_populates="store", uselist=False, cascade="all, delete-orphan")
-    telegram = relationship("Telegram", back_populates="store", uselist=False, cascade="all, delete-orphan")
-    instagram = relationship("ConnectedInstagram", back_populates="store", uselist=False, cascade="all, delete-orphan")
+    facebook_page = relationship("ConnectedPage", back_populates="store", cascade="all, delete-orphan")
+    whatsapp = relationship("ConnectedWhatsapp", back_populates="store", cascade="all, delete-orphan")
+    telegram = relationship("Telegram", back_populates="store", cascade="all, delete-orphan")
+    instagram = relationship("ConnectedInstagram", back_populates="store", cascade="all, delete-orphan")
     documents = relationship("StoreDocument", back_populates="store", cascade="all, delete-orphan")
     products = relationship("Product", back_populates="store", cascade="all, delete-orphan")
     coupons = relationship("Coupon", back_populates="store", cascade="all, delete-orphan")
@@ -273,7 +273,7 @@ class ConnectedPage(Base):
     __tablename__ = "connected_pages"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False, unique=True)
+    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     page_id = Column(String(255), nullable=False, unique=True)
     page_name = Column(String(255), nullable=True)
@@ -289,7 +289,7 @@ class ConnectedWhatsapp(Base):
     __tablename__ = "connected_whatsapp"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False, unique=True)
+    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
     waba_id = Column(String(255), nullable=False)
     phone_number_id = Column(String(255), nullable=False, unique=True)
     name = Column(String(255), nullable=True)
@@ -304,7 +304,7 @@ class Telegram(Base):
     __tablename__ = "telegram"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False, unique=True)
+    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
     bot_token = Column(String(500), nullable=False)
     bot_username = Column(String(255), nullable=True)
     added_date = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -321,7 +321,7 @@ class ConnectedInstagram(Base):
     __tablename__ = "connected_instagram"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False, unique=True)
+    store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
     ig_user_id = Column(String(255), nullable=False, unique=True)
     ig_username = Column(String(255), nullable=True)
     token = Column(String(500), nullable=True)

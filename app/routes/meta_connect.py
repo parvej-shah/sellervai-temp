@@ -62,7 +62,10 @@ async def connect_facebook(
             
             # Subscribe webhook
             sub_url = f"https://graph.facebook.com/v25.0/{page_id}/subscribed_apps"
-            sub_payload = {"subscribed_fields": "messages,messaging_postbacks,feed,pages_read_engagement,pages_manage_posts,public_profile", "access_token": page_token}
+            sub_payload = {
+                "subscribed_fields": "feed,messages,messaging_postbacks", # messages,messaging_postbacks,feed,pages_read_engagement,public_profile,pages_manage_posts", # ads_management
+                "access_token": page_token
+            }
             await client.post(sub_url, data=sub_payload)
             
             # Save to DB
@@ -98,7 +101,10 @@ async def connect_facebook(
                     
                     # Subscribe IG webhook
                     ig_sub_url = f"https://graph.facebook.com/v25.0/{ig_user_id}/subscribed_apps"
-                    ig_sub_payload = {"subscribed_fields": "messages,comments,feed,pages_read_engagement,pages_manage_posts,public_profile", "access_token": page_token}
+                    ig_sub_payload = {
+                        "subscribed_fields": "messages,comments,feed,pages_read_engagement,public_profile,pages_manage_posts", # ads_management
+                        "access_token": page_token
+                    }
                     await client.post(ig_sub_url, data=ig_sub_payload)
                     
                     # Save to DB
