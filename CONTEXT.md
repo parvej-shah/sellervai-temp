@@ -39,7 +39,7 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 
 ## Data split
 - PostgreSQL: users, stores, configuration, webhooks, platform tokens (encrypted), and vector storage via PGVector.
-- Meta integration uses multi-tenant lookup tables (`ConnectedPage`, `ConnectedInstagram`, `ConnectedWhatsapp`) tracking individual tokens by page/waba identifiers.
+- Meta integration uses multi-tenant lookup tables (`ConnectedPage`, `ConnectedInstagram`, `ConnectedWhatsapp`) tracking individual tokens by page/waba identifiers as well as their display names (e.g. `page_name`, `ig_username`, `name`).
 - Added `Conversation` and `Message` tables for thread tracking and webhook message deduplication.
 - No ChromaDB dependency in the current implementation.
 
@@ -47,12 +47,13 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 - Add indexed update triggers (on product/description changes) or a background job to keep PGVector in sync.
 - Consider storing metadata IDs with vectors so replies can include product references/citations.
 - If you want true tool-driven streaming (agent runs tools live and streams results), implement a structured agent loop that can call tools and stream intermediate outputs.
-- The store detail page at `/stores/{store_id}` renders an editable `products_items` JSON textarea and preloads the current store with `GET /api/store/{store_id}`.
-- The page template uses escaped braces for any literal JSON sample content so the Python f-string stays valid when the route is rendered.
-- The store detail page also shows the global Meta webhook URL (`/api/webhooks/meta`) and individual Telegram URLs with copy buttons.
+- The store detail page at `/stores/{store_id}` manages store configuration, products, coupons, orders, and platform connections natively using `/api/store` and `/api/meta` endpoints.
+- The page template uses escaped braces (`{{` and `}}`) for Javascript blocks so the Python f-string stays valid when the route is rendered.
 - **Connection Mechanisms:** 
-  - Facebook and Instagram are connected via standard Facebook Login (OAuth) using `FB.login`.
+  - Facebook and Instagram are connected via standard Facebook Login (OAuth) using `FB.login` with expanded scopes (`pages_manage_posts`, `ads_management`, `instagram_manage_comments`, etc.) allowing full control over engagement and ad management.
+  - The short-lived user token returned by the frontend is immediately exchanged on the backend for a **long-lived user token** using `grant_type=fb_exchange_token`. This ensures the derived Page Access Tokens are **permanent**.
   - WhatsApp is connected using Meta's official Embedded Signup flow via `FB.login` requiring a backend code exchange.
+  - Active connections (with their specific names/identifiers) can be viewed and disconnected from the store dashboard.
 - **Verification:** Meta webhooks use a single global `META_VERIFY_TOKEN` configured via `.env`. Telegram still utilizes the per-store `verification_token`.
 
 ## Naming Status
