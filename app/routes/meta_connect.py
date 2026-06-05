@@ -13,6 +13,7 @@ from app.lib.config import settings
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/meta", tags=["Meta Connect"])
 
+
 @router.post("/connect-facebook/{store_id}")
 async def connect_facebook(
     store_id: UUID,
@@ -36,8 +37,16 @@ async def connect_facebook(
         raise HTTPException(status_code=404, detail="Store not found")
         
     async with httpx.AsyncClient() as client:
+        # Exchange for long-lived token
+        if settings.META_APP_ID and settings.META_APP_SECRET:
+            ll_url = f"https://graph.facebook.com/v25.0/oauth/access_token?grant_type=fb_exchange_token&client_id={settings.META_APP_ID}&client_secret={settings.META_APP_SECRET}&fb_exchange_token={user_access_token}"
+            ll_resp = await client.get(ll_url)
+            ll_data = ll_resp.json()
+            if "access_token" in ll_data:
+                user_access_token = ll_data["access_token"]
+
         # Get Pages
-        pages_url = f"https://graph.facebook.com/v25.0/me/accounts?access_token={user_access_token}"
+        pages_url = f"https://graph.facebook.com/v25.0/me/accounts?fields=id,name,access_token&access_token={user_access_token}"
         resp = await client.get(pages_url)
         data = resp.json()
         
@@ -63,11 +72,13 @@ async def connect_facebook(
                 existing_page.token = page_token
                 existing_page.store_id = store_id
                 existing_page.user_id = current_user.id
+                existing_page.page_name = page.get("name")
             else:
                 new_page = ConnectedPage(
                     store_id=store_id,
                     user_id=current_user.id,
                     page_id=page_id,
+                    page_name=page.get("name"),
                     token=page_token
                 )
                 db.add(new_page)
@@ -76,13 +87,14 @@ async def connect_facebook(
             
             if connect_instagram:
                 # Get IG account
-                ig_url = f"https://graph.facebook.com/v25.0/{page_id}?fields=instagram_business_account&access_token={page_token}"
+                ig_url = f"https://graph.facebook.com/v25.0/{page_id}?fields=instagram_business_account{{id,username}}&access_token={page_token}"
                 ig_resp = await client.get(ig_url)
                 ig_data = ig_resp.json()
                 
                 ig_account = ig_data.get("instagram_business_account")
                 if ig_account:
                     ig_user_id = ig_account["id"]
+                    ig_username = ig_account.get("username")
                     
                     # Subscribe IG webhook
                     ig_sub_url = f"https://graph.facebook.com/v25.0/{ig_user_id}/subscribed_apps"
@@ -95,10 +107,12 @@ async def connect_facebook(
                     if existing_ig:
                         existing_ig.token = page_token
                         existing_ig.store_id = store_id
+                        existing_ig.ig_username = ig_username
                     else:
                         new_ig = ConnectedInstagram(
                             store_id=store_id,
                             ig_user_id=ig_user_id,
+                            ig_username=ig_username,
                             token=page_token
                         )
                         db.add(new_ig)
@@ -145,12 +159,13 @@ async def connect_whatsapp(
         waba_id = waba_data["data"][0]["id"]
 
         # Get phone number ID
-        phone_url = f"https://graph.facebook.com/v25.0/{waba_id}/phone_numbers?access_token={user_token}"
+        phone_url = f"https://graph.facebook.com/v25.0/{waba_id}/phone_numbers?fields=id,display_phone_number&access_token={user_token}"
         phone_res = await client.get(phone_url)
         phone_data = phone_res.json()
         if not phone_data.get("data"):
             raise HTTPException(status_code=400, detail="No Phone Number found for WABA")
         phone_number_id = phone_data["data"][0]["id"]
+        phone_name = phone_data["data"][0].get("display_phone_number")
         
         # Subscribe webhook
         sub_url = f"https://graph.facebook.com/v25.0/{waba_id}/subscribed_apps"
@@ -163,11 +178,13 @@ async def connect_whatsapp(
             existing_wa.waba_id = waba_id
             existing_wa.token = user_token
             existing_wa.store_id = store_id
+            existing_wa.name = phone_name
         else:
             new_wa = ConnectedWhatsapp(
                 store_id=store_id,
                 waba_id=waba_id,
                 phone_number_id=phone_number_id,
+                name=phone_name,
                 token=user_token
             )
             db.add(new_wa)
@@ -195,6 +212,54 @@ async def disconnect_facebook(
     async with httpx.AsyncClient() as client:
         # Delete subscription
         sub_url = f"https://graph.facebook.com/v25.0/{page_id}/subscribed_apps"
+        await client.delete(sub_url, params={"access_token": page.token})
+        
+    await db.delete(page)
+    await db.commit()
+    return {"status": "success"}
+
+@router.delete("/disconnect-instagram/{store_id}/{ig_user_id}")
+async def disconnect_instagram(
+    store_id: UUID,
+    ig_user_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Store).filter(Store.id == store_id, Store.user_id == current_user.id))
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Store not found")
+        
+    p_res = await db.execute(select(ConnectedInstagram).filter(ConnectedInstagram.ig_user_id == ig_user_id, ConnectedInstagram.store_id == store_id))
+    page = p_res.scalar_one_or_none()
+    if not page:
+        raise HTTPException(status_code=404, detail="Connected Instagram not found")
+        
+    async with httpx.AsyncClient() as client:
+        sub_url = f"https://graph.facebook.com/v25.0/{ig_user_id}/subscribed_apps"
+        await client.delete(sub_url, params={"access_token": page.token})
+        
+    await db.delete(page)
+    await db.commit()
+    return {"status": "success"}
+
+@router.delete("/disconnect-whatsapp/{store_id}/{phone_number_id}")
+async def disconnect_whatsapp(
+    store_id: UUID,
+    phone_number_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Store).filter(Store.id == store_id, Store.user_id == current_user.id))
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Store not found")
+        
+    p_res = await db.execute(select(ConnectedWhatsapp).filter(ConnectedWhatsapp.phone_number_id == phone_number_id, ConnectedWhatsapp.store_id == store_id))
+    page = p_res.scalar_one_or_none()
+    if not page:
+        raise HTTPException(status_code=404, detail="Connected WhatsApp not found")
+        
+    async with httpx.AsyncClient() as client:
+        sub_url = f"https://graph.facebook.com/v25.0/{page.waba_id}/subscribed_apps"
         await client.delete(sub_url, params={"access_token": page.token})
         
     await db.delete(page)
@@ -230,7 +295,7 @@ async def get_connected_pages(
         "pages": [
             {
                 "page_id": page.page_id,
-                "page_name": page.page_id,  # In future, fetch from Meta API for display name
+                "page_name": page.page_name or page.page_id,
                 "token": page.token,
             }
             for page in pages
@@ -262,7 +327,37 @@ async def get_connected_instagram(
         "accounts": [
             {
                 "ig_user_id": account.ig_user_id,
-                "ig_username": account.ig_user_id,  # In future, fetch from Meta API for display name
+                "ig_username": account.ig_username or account.ig_user_id,
+                "token": account.token,
+            }
+            for account in accounts
+        ]
+    }
+
+@router.get("/connected-whatsapp/{store_id}")
+async def get_connected_whatsapp(
+    store_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all connected WhatsApp accounts for a store."""
+    result = await db.execute(
+        select(Store).filter(Store.id == store_id, Store.user_id == current_user.id)
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    wa_result = await db.execute(
+        select(ConnectedWhatsapp).filter(ConnectedWhatsapp.store_id == store_id)
+    )
+    accounts = wa_result.scalars().all()
+    
+    return {
+        "accounts": [
+            {
+                "phone_number_id": account.phone_number_id,
+                "name": account.name or account.phone_number_id,
+                "waba_id": account.waba_id,
                 "token": account.token,
             }
             for account in accounts

@@ -7,8 +7,11 @@ from app.lib.config import settings
 from app.routes import auth, store, users, chat, setup, webhooks, documents, pages, meta_connect, posts
 from app.routes import products, coupons, orders
 
-from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.schedulers.background import BackgroundScheduler
 from contextlib import asynccontextmanager
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import httpx
+
 
 # Configure logging
 logging.basicConfig(
@@ -17,8 +20,37 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
 logger.info(f"[ENV] Enviroment: {settings.ENVIRONMENT}")
+
+async def self_ping_task():
+    async with httpx.AsyncClient() as client:
+        try:
+            r = await client.get("http://localhost:8000/ping", timeout=5)
+            logger.info(f"\nSelf-ping: {r.status_code}")
+        except Exception as e:
+            logger.warning(f"\nSelf-ping failed: {e}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    
+    # scheduler = BackgroundScheduler()
+    scheduler = AsyncIOScheduler()
+    
+    if settings.PLATFORM_IS_RENDER:
+        scheduler.add_job(self_ping_task, "interval", minutes=10)
+
+    scheduler.start()
+    logger.info("APScheduler started successfully.")
+
+    # To access in other routes
+    # [Here] app.state.scheduler = scheduler
+    # [there] scheduler = request.app.state.scheduler
+    
+    yield  # App Runs
+    
+    scheduler.shutdown()
+    logger.info("APScheduler stopped.")
 
 # Create FastAPI app
 app = FastAPI(
@@ -26,7 +58,8 @@ app = FastAPI(
     description="Multi-platform messaging integration with AI-powered chat (DeepSeek + RAG)",
     version="2.0.0",
     docs_url= "/docs"  if settings.ENVIRONMENT == "development" else None,
-    redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None
+    redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
+    lifespan=lifespan,
 )
 
 # Configure CORS
@@ -79,24 +112,6 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"detail": "Internal server error"}
     )
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    scheduler = BackgroundScheduler()
-    
-    scheduler.add_job(self_ping_task, "interval", second=1)
-    scheduler.start()
-    logger.info("APScheduler started successfully.")
-
-    # To access in other routes
-    # [Here] app.state.scheduler = scheduler
-    # [there] scheduler = request.app.state.scheduler
-    
-    yield  # App Runs
-    
-    scheduler.shutdown()
-    logger.info("APScheduler stopped.")
 
 
 if __name__ == "__main__":

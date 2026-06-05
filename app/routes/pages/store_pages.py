@@ -140,6 +140,7 @@ async def store_detail(store_id: str):
   <div style="margin-bottom: 24px;">
     <h3>Facebook Messenger</h3>
     <p class="muted">Connect your Facebook Page for Messenger.</p>
+    <div id="facebook-connections-list" style="margin-bottom: 12px;"></div>
     <div class="actions" style="margin-top:8px;">
       <button type="button" id="btn-connect-facebook">Connect Facebook</button>
     </div>
@@ -148,6 +149,7 @@ async def store_detail(store_id: str):
   <div>
     <h3>Instagram</h3>
     <p class="muted">Connect your Instagram Business account (must be linked to a Facebook Page).</p>
+    <div id="instagram-connections-list" style="margin-bottom: 12px;"></div>
     <form id="form-connect-instagram">
       <label>User Access Token (Optional Manual Fallback)
         <input name="user_access_token" placeholder="Paste Graph API Explorer token if OAuth fails...">
@@ -163,6 +165,7 @@ async def store_detail(store_id: str):
 <section>
   <h2>WhatsApp Connection</h2>
   <p class="muted">Connect WhatsApp Business using Embedded Signup credentials.</p>
+  <div id="whatsapp-connections-list" style="margin-bottom: 12px;"></div>
   <div class="actions" style="margin-top:8px;">
     <button type="button" id="btn-connect-whatsapp">Connect WhatsApp</button>
   </div>
@@ -225,7 +228,7 @@ function renderWebhookUrls() {{
     const metaInput = document.getElementById("webhook-url-meta");
     if (metaInput) metaInput.value = webhookUrl("meta");
 }}
-ensureSessionOrRedirect().then((session) => {{ if (!session) {{ return; }} renderWebhookUrls(); loadStore(); loadProducts(); loadCoupons(); loadOrders(); }}).catch((error) => {{ showError(error.message || "Session check failed"); }});
+ensureSessionOrRedirect().then((session) => {{ if (!session) {{ return; }} renderWebhookUrls(); loadStore(); loadProducts(); loadCoupons(); loadOrders(); loadConnections(); }}).catch((error) => {{ showError(error.message || "Session check failed"); }});
 
 // ---- Store settings ----
 async function loadStore() {{
@@ -504,6 +507,60 @@ async function updateOrderStatus(id, newStatus) {{
 document.getElementById("order-status-filter").addEventListener("change", loadOrders);
 document.getElementById("btn-refresh-orders").addEventListener("click", loadOrders);
 
+// ---- Connections Listing ----
+async function loadConnections() {{
+    try {{
+        const fbRes = await fetchJson(`/api/meta/connected-pages/{store_id}`);
+        const fbList = document.getElementById("facebook-connections-list");
+        if (fbRes.pages && fbRes.pages.length) {{
+            fbList.innerHTML = fbRes.pages.map(p => `<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;"><span style="flex:1;">📄 ${{p.page_name}}</span><button class="secondary" style="padding:4px 8px;font-size:12px;color:#f66;" onclick="disconnectFacebook('${{p.page_id}}')">🗑️ Disconnect</button></div>`).join("");
+        }} else {{
+            fbList.innerHTML = `<p class="muted small">No pages connected.</p>`;
+        }}
+        
+        const igRes = await fetchJson(`/api/meta/connected-instagram/{store_id}`);
+        const igList = document.getElementById("instagram-connections-list");
+        if (igRes.accounts && igRes.accounts.length) {{
+            igList.innerHTML = igRes.accounts.map(p => `<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;"><span style="flex:1;">📸 ${{p.ig_username}}</span><button class="secondary" style="padding:4px 8px;font-size:12px;color:#f66;" onclick="disconnectInstagram('${{p.ig_user_id}}')">🗑️ Disconnect</button></div>`).join("");
+        }} else {{
+            igList.innerHTML = `<p class="muted small">No Instagram accounts connected.</p>`;
+        }}
+        
+        const waRes = await fetchJson(`/api/meta/connected-whatsapp/{store_id}`);
+        const waList = document.getElementById("whatsapp-connections-list");
+        if (waRes.accounts && waRes.accounts.length) {{
+            waList.innerHTML = waRes.accounts.map(p => `<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;"><span style="flex:1;">💬 ${{p.name}} (${{p.phone_number_id}})</span><button class="secondary" style="padding:4px 8px;font-size:12px;color:#f66;" onclick="disconnectWhatsApp('${{p.phone_number_id}}')">🗑️ Disconnect</button></div>`).join("");
+        }} else {{
+            waList.innerHTML = `<p class="muted small">No WhatsApp accounts connected.</p>`;
+        }}
+    }} catch(e) {{
+        console.error("Error loading connections", e);
+    }}
+}}
+
+async function disconnectFacebook(page_id) {{
+    if(!confirm("Disconnect this Facebook Page?")) return;
+    try {{
+        await fetchJson(`/api/meta/disconnect-facebook/{store_id}/${{page_id}}`, {{method: 'DELETE'}});
+        loadConnections();
+    }} catch(e) {{ alert(e.message); }}
+}}
+async function disconnectInstagram(ig_user_id) {{
+    if(!confirm("Disconnect this Instagram Account?")) return;
+    try {{
+        await fetchJson(`/api/meta/disconnect-instagram/{store_id}/${{ig_user_id}}`, {{method: 'DELETE'}});
+        loadConnections();
+    }} catch(e) {{ alert(e.message); }}
+}}
+async function disconnectWhatsApp(phone_number_id) {{
+    if(!confirm("Disconnect this WhatsApp Account?")) return;
+    try {{
+        await fetchJson(`/api/meta/disconnect-whatsapp/{store_id}/${{phone_number_id}}`, {{method: 'DELETE'}});
+        loadConnections();
+    }} catch(e) {{ alert(e.message); }}
+}}
+
+
 // Meta Connect JS - Facebook
 document.getElementById("btn-connect-facebook")?.addEventListener("click", async (event) => {{
     if (typeof FB === 'undefined') {{
@@ -528,13 +585,14 @@ document.getElementById("btn-connect-facebook")?.addEventListener("click", async
                 body: JSON.stringify(payload)
             }}).then(() => {{
                 setMessage("connection-message", "Facebook connected successfully.");
+                loadConnections();
             }}).catch((error) => {{
                 setMessage("connection-message", error.message || "Failed to connect Facebook.");
             }});
         }} else {{
             setMessage("connection-message", "Facebook login cancelled or failed.");
         }}
-    }}, {{scope: 'pages_show_list,pages_messaging'}});
+    }}, {{scope: 'pages_show_list,pages_messaging,pages_read_engagement,pages_manage_posts,ads_management,public_profile'}});
 }});
 
 // Meta Connect JS - Instagram (OAuth)
@@ -561,13 +619,14 @@ document.getElementById("btn-connect-instagram-oauth")?.addEventListener("click"
                 body: JSON.stringify(payload)
             }}).then(() => {{
                 setMessage("connection-message", "Instagram connected successfully.");
+                loadConnections();
             }}).catch((error) => {{
                 setMessage("connection-message", error.message || "Failed to connect Instagram.");
             }});
         }} else {{
             setMessage("connection-message", "Instagram login cancelled or failed.");
         }}
-    }}, {{scope: 'pages_show_list,pages_messaging,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments'}});
+    }}, {{scope: 'pages_show_list,pages_messaging,pages_read_engagement,pages_manage_posts,ads_management,instagram_basic,instagram_manage_messages,instagram_manage_comments,instagram_content_publish,public_profile'}});
 }});
 
 // Meta Connect JS - Instagram (Manual Token Fallback)
@@ -591,6 +650,7 @@ document.getElementById("form-connect-instagram")?.addEventListener("submit", as
             body: JSON.stringify(payload)
         }});
         setMessage("connection-message", "Instagram connected successfully via manual token.");
+        loadConnections();
     }} catch (error) {{
         setMessage("connection-message", error.message || "Failed to connect Instagram.");
     }}
@@ -617,7 +677,8 @@ document.getElementById("btn-connect-whatsapp")?.addEventListener("click", async
                 body: JSON.stringify(payload)
             }}).then(() => {{
                 setMessage("connection-message", "WhatsApp connected successfully.");
-            }}).catch((error) => {{
+                loadConnections();
+            }}).catch((error) {{
                 setMessage("connection-message", error.message || "Failed to connect WhatsApp.");
             }});
         }} else {{

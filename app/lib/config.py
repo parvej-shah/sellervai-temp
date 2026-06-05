@@ -60,6 +60,8 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_FILE_SIZE_MB: int = 50
 
+    PLATFORM_IS_RENDER: bool = False
+
     # Meta Integration
     META_APP_ID: str = ""
     META_APP_SECRET: str = ""
