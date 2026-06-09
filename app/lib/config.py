@@ -3,7 +3,6 @@ from pathlib import Path
 from pydantic_settings import BaseSettings
 from typing import List
 
-
 def load_dotenv_tolerant(path: str = ".env") -> None:
     env_path = Path(path)
     if not env_path.is_file():
@@ -69,6 +68,10 @@ class Settings(BaseSettings):
     META_WHATSAPP_CONFIG_ID: str = ""
 
     BASE_URL: str = "http://localhost:8000"
+
+    # Google OAuth
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
     
     @property
     def cors_origins_list(self) -> List[str]:

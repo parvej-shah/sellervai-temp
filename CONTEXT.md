@@ -87,6 +87,26 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 - **Route ownership**: `GET /` is served by `app/routes/pages/home_pages.py`.
   Auth routes (`/login`, `/register`) remain in `auth_pages.py`.
 
+## Google OAuth (Sign in / Sign up with Google)
+
+- **Strategy**: Google Identity Services (GSI) — client-side sign-in, no server redirect loop.
+- **CDN loaded in login/register templates**: `https://accounts.google.com/gsi/client`
+- **Endpoint**: `POST /api/auth/google`
+  - Accepts `{ email, name, google_id }` (decoded from the GSI credential JWT in the browser).
+  - Upserts the user: lookup by `google_id` → fallback lookup by `email` (links existing account) → create new.
+  - Returns a standard `{ access_token, token_type }` JWT — same as email/password login.
+- **User model changes** (migration `05c8b29ad6bf`):
+  - `users.google_id` — nullable `VARCHAR(255)`, unique index. Stores Google's `sub` field.
+  - `users.hashed_password` — made nullable so Google-only accounts (no password) can be stored.
+- **Required env vars**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (set in `.env`).
+  The `GOOGLE_CLIENT_ID` is passed to each auth page template so the GSI button renders correctly.
+- **Frontend flow**:
+  1. GSI renders the "Sign in with Google" button via `<div class="g_id_signin">`.
+  2. On success, the `handleGoogleCredential(response)` callback fires.
+  3. The credential JWT is base64-decoded client-side to extract `email`, `name`, `sub`.
+  4. `POST /api/auth/google` is called → app JWT returned → stored in `localStorage` → redirect to `/dashboard`.
+- **Templates**: `templates/login.html` and `templates/register.html` (both Mako, inherit `base.html`).
+
 ---
 
 File generated for quick context in conversations and developer onboarding.

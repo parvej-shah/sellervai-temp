@@ -145,10 +145,12 @@ nano .env
 ```
 
 Required environment variables:
-- `DATABASE_URL` - PostgreSQL connection string
-- `SECRET_KEY` - Application secret key
-- `GEMINI_API_KEY` - Google Gemini API key
-- Platform-specific API keys and tokens
+- `DATABASE_URL` — PostgreSQL connection string
+- `SECRET_KEY` — Application secret key
+- `DEEPSEEK_API_KEY` — DeepSeek LLM API key
+- `GOOGLE_CLIENT_ID` — Google OAuth client ID (from Google Cloud Console)
+- `GOOGLE_CLIENT_SECRET` — Google OAuth client secret
+- Platform-specific keys and tokens
 
 ### 4. Database Setup
 

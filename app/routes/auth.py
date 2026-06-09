@@ -1,6 +1,7 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -98,3 +99,62 @@ async def logout(current_user: User = Depends(get_current_user)):
 async def get_session(current_user: User = Depends(get_current_user)):
     """Get current user session/profile."""
     return current_user
+
+
+# ---------------------------------------------------------------------------
+# Google OAuth
+# ---------------------------------------------------------------------------
+
+class GoogleAuthRequest(BaseModel):
+    """Payload sent by the frontend after Google Sign-In resolves."""
+    email: str
+    name: str
+    google_id: str  # Google's stable 'sub' field from the decoded credential
+
+
+@router.post("/google", response_model=Token, tags=["Authentication"])
+async def google_auth(
+    payload: GoogleAuthRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Exchange Google credentials for an app JWT.
+
+    Frontend flow:
+      1. Load Google Identity Services (GSI) via CDN.
+      2. Call google.accounts.id.initialize({ client_id, callback }).
+      3. In the callback, decode the credential JWT (base64 decode the payload).
+      4. POST { email, name, google_id } to this endpoint.
+      5. Store the returned access_token in localStorage and redirect to /dashboard.
+    """
+    # 1. Try lookup by google_id (fast path for returning users)
+    result = await db.execute(select(User).filter(User.google_id == payload.google_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # 2. Try lookup by email — link existing password account or create new
+        result = await db.execute(select(User).filter(User.email == payload.email))
+        user = result.scalar_one_or_none()
+
+        if user:
+            # Link Google ID to the existing account
+            user.google_id = payload.google_id
+        else:
+            # Brand-new Google-only account (no password)
+            user = User(
+                name=payload.name,
+                email=payload.email,
+                google_id=payload.google_id,
+                hashed_password=None,
+            )
+            db.add(user)
+
+        await db.commit()
+        await db.refresh(user)
+
+    # 3. Issue standard app JWT
+    access_token = create_access_token(
+        data={"sub": user.email},
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    return {"access_token": access_token, "token_type": "bearer"}

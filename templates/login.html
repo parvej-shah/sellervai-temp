@@ -1,0 +1,117 @@
+<%inherit file="base.html" />
+
+<%def name="title()">Sign in</%def>
+<%def name="meta_description()">Sign in to your Sellervai account.</%def>
+
+<%def name="extra_head()">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</%def>
+
+<%def name="nav_items()">
+  <li><a href="/register">Create account</a></li>
+</%def>
+
+<div class="sv-auth-wrap">
+  <div class="sv-auth-card">
+
+    <div class="sv-auth-header">
+      <i class="ti ti-robot sv-auth-logo"></i>
+      <h1>Welcome back</h1>
+      <p>Sign in to your Sellervai account</p>
+    </div>
+
+    <div class="sv-google-btn-wrap">
+      <div id="g_id_onload" data-client_id="${google_client_id}" data-callback="handleGoogleCredential"
+        data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="signin_with"
+        data-shape="rectangular" data-logo_alignment="left" data-width="100%">
+      </div>
+    </div>
+
+    <div class="sv-divider"><span>or continue with email</span></div>
+
+    <form id="login-form" class="sv-form">
+      <label>
+        Email
+        <input id="login-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email" />
+      </label>
+      <label>
+        Password
+        <input id="login-password" name="password" type="password" placeholder="••••••••" required
+          autocomplete="current-password" />
+      </label>
+      <p id="login-error" class="sv-form-error" hidden></p>
+      <button type="submit" id="login-btn">
+        <i class="ti ti-login"></i> Sign in
+      </button>
+    </form>
+
+    <p class="sv-auth-footer">
+      No account? <a href="/register">Create one</a>
+    </p>
+
+  </div>
+</div>
+
+<%def name="extra_scripts()">
+  <script>
+    ensureSessionOrRedirect().then(s => { if (s) window.location.href = "/dashboard"; }).catch(() => { });
+
+    function handleGoogleCredential(response) {
+      const btn = document.getElementById("login-btn");
+      showLoginError("");
+
+      const parts = response.credential.split(".");
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+
+      fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: payload.email, name: payload.name, google_id: payload.sub }),
+      })
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+          if (!ok) { showLoginError(d.detail || "Google sign-in failed"); return; }
+          setToken(d.access_token);
+          window.location.href = "/dashboard";
+        })
+        .catch(() => showLoginError("Network error. Please try again."));
+    }
+
+    document.getElementById("login-form").addEventListener("submit", async e => {
+      e.preventDefault();
+      showLoginError("");
+      const btn = document.getElementById("login-btn");
+      btn.setAttribute("aria-busy", "true");
+      btn.disabled = true;
+
+      const body = new URLSearchParams();
+      body.set("username", document.getElementById("login-email").value);
+      body.set("password", document.getElementById("login-password").value);
+
+      try {
+        const r = await fetch("/api/auth/login/docs", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) { showLoginError(d.detail || "Login failed"); return; }
+        setToken(d.access_token);
+        window.location.href = "/dashboard";
+      } catch {
+        showLoginError("Network error. Please try again.");
+      } finally {
+        btn.removeAttribute("aria-busy");
+        btn.disabled = false;
+      }
+    });
+
+    function showLoginError(msg) {
+      const el = document.getElementById("login-error");
+      el.textContent = msg;
+      el.hidden = !msg;
+    }
+  </script>
+</%def>

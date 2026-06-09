@@ -9,7 +9,6 @@
   <li><a href="/register" role="button">Get started</a></li>
 </%def>
 
-## ── Hero ──────────────────────────────────────────────────────────
 <section class="sv-hero" id="hero">
   <div class="sv-hero-content">
     <span class="sv-badge">
@@ -35,7 +34,6 @@
   </div>
 </section>
 
-## ── Feature grid ──────────────────────────────────────────────────
 <section id="features">
   <h2 class="sv-section-title">Everything you need to sell smarter</h2>
   <div class="sv-feature-grid">
@@ -79,7 +77,6 @@
   </div>
 </section>
 
-## ── HTMX live status widget ───────────────────────────────────────
 <section id="status-section">
   <h2 class="sv-section-title">Platform status</h2>
   <div id="platform-status" hx-get="/health" hx-trigger="load, every 30s" hx-swap="innerHTML" class="sv-status-box">
@@ -89,16 +86,15 @@
 
 <%def name="extra_scripts()">
   <script>
-  ## Redirect authenticated users straight to the dashboard
-      (function () {
-        const token = localStorage.getItem("bizzz_token");
-        if (token) {
-          fetch("/api/auth/session", {
-            headers: { Authorization: "Bearer " + token },
-          })
-            .then((r) => { if (r.ok) window.location.href = "/dashboard"; })
-            .catch(() => { });
-        }
-      })();
+    (function () {
+      const token = localStorage.getItem("bizzz_token");
+      if (token) {
+        fetch("/api/auth/session", {
+          headers: { Authorization: "Bearer " + token },
+        })
+          .then((r) => { if (r.ok) window.location.href = "/dashboard"; })
+          .catch(() => { });
+      }
+    })();
   </script>
 </%def>

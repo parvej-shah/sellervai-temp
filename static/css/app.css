@@ -5,14 +5,14 @@
 
 /* ── Design tokens ──────────────────────────────────────────────── */
 :root {
-  --sv-accent:        #7c6aff;
-  --sv-accent-hover:  #6355e0;
-  --sv-surface:       #1a1a2e;
-  --sv-surface-2:     #16213e;
-  --sv-border:        rgba(255,255,255,0.08);
-  --sv-text-muted:    rgba(255,255,255,0.5);
-  --sv-radius:        12px;
-  --sv-transition:    0.2s ease;
+  --sv-accent: #7c6aff;
+  --sv-accent-hover: #6355e0;
+  --sv-surface: #1a1a2e;
+  --sv-surface-2: #16213e;
+  --sv-border: rgba(255, 255, 255, 0.08);
+  --sv-text-muted: rgba(255, 255, 255, 0.5);
+  --sv-radius: 12px;
+  --sv-transition: 0.2s ease;
 }
 
 /* ── Global overrides ───────────────────────────────────────────── */
@@ -25,15 +25,20 @@ a {
   color: var(--sv-accent);
   transition: color var(--sv-transition);
 }
-a:hover { color: var(--sv-accent-hover); }
 
-[role="button"], button {
+a:hover {
+  color: var(--sv-accent-hover);
+}
+
+[role="button"],
+button {
   transition: transform var(--sv-transition), box-shadow var(--sv-transition);
 }
+
 [role="button"]:hover:not(:disabled),
 button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(124,106,255,0.35);
+  box-shadow: 0 4px 20px rgba(124, 106, 255, 0.35);
 }
 
 /* ── Navigation ─────────────────────────────────────────────────── */
@@ -45,7 +50,7 @@ button:hover:not(:disabled) {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(26,26,46,0.85);
+  background: rgba(26, 26, 46, 0.85);
 }
 
 .sv-brand {
@@ -57,10 +62,18 @@ button:hover:not(:disabled) {
   color: #fff !important;
   text-decoration: none;
 }
-.sv-brand i { color: var(--sv-accent); font-size: 1.4rem; }
+
+.sv-brand i {
+  color: var(--sv-accent);
+  font-size: 1.4rem;
+}
 
 /* ── Main & Footer ──────────────────────────────────────────────── */
-.sv-main  { padding-top: 3rem; padding-bottom: 4rem; }
+.sv-main {
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
 .sv-footer {
   text-align: center;
   padding: 1.5rem 0;
@@ -81,8 +94,8 @@ button:hover:not(:disabled) {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(124,106,255,0.15);
-  border: 1px solid rgba(124,106,255,0.35);
+  background: rgba(124, 106, 255, 0.15);
+  border: 1px solid rgba(124, 106, 255, 0.35);
   color: var(--sv-accent);
   padding: 0.3rem 0.75rem;
   border-radius: 100px;
@@ -96,6 +109,7 @@ button:hover:not(:disabled) {
   line-height: 1.15;
   margin-bottom: 1rem;
 }
+
 .sv-hero h1 em {
   font-style: normal;
   background: linear-gradient(135deg, var(--sv-accent), #b06cff);
@@ -123,6 +137,7 @@ button:hover:not(:disabled) {
   align-items: center;
   justify-content: center;
 }
+
 .sv-hero-icon {
   font-size: 9rem;
   color: var(--sv-accent);
@@ -131,8 +146,15 @@ button:hover:not(:disabled) {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-18px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-18px);
+  }
 }
 
 /* ── Section title ──────────────────────────────────────────────── */
@@ -157,20 +179,24 @@ button:hover:not(:disabled) {
   padding: 1.5rem;
   transition: border-color var(--sv-transition), transform var(--sv-transition);
 }
+
 .sv-feature-card:hover {
   border-color: var(--sv-accent);
   transform: translateY(-3px);
 }
+
 .sv-feature-icon {
   font-size: 2rem;
   color: var(--sv-accent);
   margin-bottom: 0.75rem;
   display: block;
 }
+
 .sv-feature-card h3 {
   font-size: 1rem;
   margin-bottom: 0.5rem;
 }
+
 .sv-feature-card p {
   font-size: 0.9rem;
   color: var(--sv-text-muted);
@@ -197,7 +223,135 @@ button:hover:not(:disabled) {
     text-align: center;
     padding: 2.5rem 0 3rem;
   }
-  .sv-hero-visual { display: none; }
-  .sv-hero-actions { justify-content: center; }
-  .sv-hero p { margin-inline: auto; }
+
+  .sv-hero-visual {
+    display: none;
+  }
+
+  .sv-hero-actions {
+    justify-content: center;
+  }
+
+  .sv-hero p {
+    margin-inline: auto;
+  }
+}
+
+/* ── Auth pages (login / register) ─────────────────────────────── */
+.sv-auth-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 120px);
+  padding: 2rem 1rem;
+}
+
+.sv-auth-card {
+  background: var(--sv-surface-2);
+  border: 1px solid var(--sv-border);
+  border-radius: var(--sv-radius);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.sv-auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sv-auth-logo {
+  font-size: 2.8rem;
+  color: var(--sv-accent);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.sv-auth-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.sv-auth-header p {
+  color: var(--sv-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ── Google button wrapper ───────────────────────────────────────── */
+.sv-google-btn-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+/* Force GSI iframe to full width */
+.sv-google-btn-wrap iframe {
+  width: 100% !important;
+}
+
+/* ── Divider ─────────────────────────────────────────────────────── */
+.sv-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--sv-text-muted);
+  font-size: 0.82rem;
+  margin-bottom: 1.25rem;
+}
+
+.sv-divider::before,
+.sv-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--sv-border);
+}
+
+/* ── Auth form ───────────────────────────────────────────────────── */
+.sv-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.sv-form label {
+  display: grid;
+  gap: 0.30rem;
+  font-size: 0.8rem;
+}
+
+.sv-form input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sv-form button[type="submit"] {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.sv-form-error {
+  color: #f87171;
+  font-size: 0.7rem;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+
+.sv-optional {
+  color: var(--sv-text-muted);
+  font-weight: 400;
+  display: inline;
+}
+
+.sv-auth-footer {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--sv-text-muted);
+  margin-top: 1.25rem;
+  margin-bottom: 0;
 }
