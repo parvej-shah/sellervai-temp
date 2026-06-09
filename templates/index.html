@@ -12,72 +12,441 @@
 <section class="sv-hero" id="hero">
   <div class="sv-hero-content">
     <span class="sv-badge">
-      <i class="ti ti-sparkles"></i> AI-Powered
+      <i class="ti ti-sparkles" aria-hidden="true"></i> AI-Powered
     </span>
-    <h1>Automate your store with&nbsp;<em>intelligent</em>&nbsp;AI</h1>
+    <h1>Turn every customer message into a&nbsp;<em>sales opportunity</em></h1>
     <p>
-      Sellervai connects your store to WhatsApp, Facebook, Instagram, and
-      Telegram — letting your AI assistant handle messages, orders, and
-      customer support around the clock.
+      Sellervai helps store owners reply instantly on WhatsApp, Facebook,
+      Instagram, and Telegram, recommend the right products, and keep selling
+      even after the team signs off for the day.
     </p>
+    <div class="sv-hero-proof">
+      <span><i class="ti ti-check" aria-hidden="true"></i> No code setup</span>
+      <span><i class="ti ti-check" aria-hidden="true"></i> 4 channels in one inbox</span>
+      <span><i class="ti ti-check" aria-hidden="true"></i> Multilingual customer support</span>
+    </div>
     <div class="sv-hero-actions">
       <a href="/register" class="sv-btn sv-btn-hero" id="cta-register">
-        <i class="ti ti-rocket"></i> Start for free
+        <i class="ti ti-rocket" aria-hidden="true"></i> Start for free
       </a>
+      <a href="#pricing" class="sv-btn sv-btn-secondary">
+        See pricing
+      </a>
+    </div>
+    <div class="sv-hero-meta">
+      <div class="sv-hero-stat">
+        <strong>24/7</strong>
+        <span>instant replies</span>
+      </div>
+      <div class="sv-hero-stat">
+        <strong>4</strong>
+        <span>channels connected</span>
+      </div>
+      <div class="sv-hero-stat">
+        <strong>10 min</strong>
+        <span>to launch</span>
+      </div>
     </div>
   </div>
   <div class="sv-hero-visual" aria-hidden="true">
-    <i class="ti ti-robot sv-hero-icon"></i>
+    <div class="sv-hero-scene">
+      <div class="sv-hero-orb sv-hero-orb-a"></div>
+      <div class="sv-hero-orb sv-hero-orb-b"></div>
+      <article class="sv-hero-showcase">
+        <div class="sv-hero-showcase-head">
+          <span class="sv-pill sv-pill-success"><span class="sv-dot is-live"></span> AI assistant online</span>
+          <span class="sv-chip sv-chip-instagram"><i class="ti ti-brand-instagram sv-chip-icon"></i> Instagram DM</span>
+        </div>
+        <div class="sv-hero-conversation">
+          <div class="sv-hero-bubble">
+            <strong>Customer</strong>
+            <p>I need this saree in navy blue. Can it arrive by Friday?</p>
+          </div>
+          <div class="sv-hero-bubble sv-hero-bubble--reply">
+            <strong>Sellervai AI</strong>
+            <p>Yes, navy is available. Friday delivery works, and here are two matching options under your budget.</p>
+          </div>
+        </div>
+        <div class="sv-hero-insights">
+          <div class="sv-hero-insight-card">
+            <span class="sv-eyebrow">Recommendation</span>
+            <strong>3 products matched</strong>
+          </div>
+          <div class="sv-hero-insight-card">
+            <span class="sv-eyebrow">Outcome</span>
+            <strong>Order intent detected</strong>
+          </div>
+        </div>
+      </article>
+    </div>
   </div>
 </section>
 
 <section id="features">
   <h2 class="sv-section-title">Everything you need to sell smarter</h2>
   <div class="sv-feature-grid">
-
     <article class="sv-feature-card">
-      <i class="ti ti-messages sv-feature-icon"></i>
+      <i class="ti ti-messages sv-feature-icon" aria-hidden="true"></i>
       <h3>Multi-platform messaging</h3>
       <p>Handle WhatsApp, Messenger, Instagram DMs, and Telegram from one unified inbox.</p>
     </article>
 
     <article class="sv-feature-card">
-      <i class="ti ti-brain sv-feature-icon"></i>
+      <i class="ti ti-brain sv-feature-icon" aria-hidden="true"></i>
       <h3>AI chat assistant</h3>
       <p>DeepSeek-powered AI answers questions, suggests products, and closes sales 24/7.</p>
     </article>
 
     <article class="sv-feature-card">
-      <i class="ti ti-database sv-feature-icon"></i>
+      <i class="ti ti-database sv-feature-icon" aria-hidden="true"></i>
       <h3>Smart knowledge base</h3>
-      <p>Upload PDFs, product lists, and docs — the AI learns your catalogue automatically.</p>
+      <p>Upload PDFs, product lists, and docs, then let the AI learn your catalogue automatically.</p>
     </article>
 
     <article class="sv-feature-card">
-      <i class="ti ti-chart-bar sv-feature-icon"></i>
+      <i class="ti ti-chart-bar sv-feature-icon" aria-hidden="true"></i>
       <h3>Live dashboard</h3>
       <p>Monitor conversations, orders, and performance metrics in real time with HTMX updates.</p>
     </article>
 
     <article class="sv-feature-card">
-      <i class="ti ti-plug-connected sv-feature-icon"></i>
+      <i class="ti ti-plug-connected sv-feature-icon" aria-hidden="true"></i>
       <h3>One-click integrations</h3>
-      <p>Connect Facebook, Instagram, and WhatsApp via OAuth in seconds — no API keys needed.</p>
+      <p>Connect Facebook, Instagram, and WhatsApp via OAuth in seconds, with no API keys needed.</p>
     </article>
 
     <article class="sv-feature-card">
-      <i class="ti ti-lock sv-feature-icon"></i>
+      <i class="ti ti-lock sv-feature-icon" aria-hidden="true"></i>
       <h3>Secure & private</h3>
       <p>All tokens are encrypted at rest. Your data never leaves your own database.</p>
     </article>
-
   </div>
 </section>
 
-<section id="status-section">
-  <h2 class="sv-section-title">Platform status</h2>
-  <div id="platform-status" hx-get="/health" hx-trigger="load, every 30s" hx-swap="innerHTML" class="sv-status-box">
-    <span aria-busy="true">Checking status…</span>
+<section id="trust" class="sv-trust-strip" aria-labelledby="trust-title">
+  <div>
+    <p class="sv-eyebrow" id="trust-title">Trusted by growing stores</p>
+    <p class="sv-trust-copy">Built for merchants who want to answer faster, sell more, and stay available in every channel.</p>
+  </div>
+  <div class="sv-trust-logos" aria-label="Supported messaging platforms">
+    <span class="sv-trust-logo sv-trust-logo-whatsapp"><i class="ti ti-brand-whatsapp" aria-hidden="true"></i></span>
+    <span class="sv-trust-logo sv-trust-logo-messenger"><i class="ti ti-brand-messenger" aria-hidden="true"></i></span>
+    <span class="sv-trust-logo sv-trust-logo-instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></span>
+    <span class="sv-trust-logo sv-trust-logo-telegram"><i class="ti ti-brand-telegram" aria-hidden="true"></i></span>
+  </div>
+</section>
+
+<section id="how-it-works">
+  <div class="sv-section-intro">
+    <p class="sv-eyebrow">How it works</p>
+    <h2 class="sv-section-title sv-section-title--left">Three steps to launch your AI sales assistant</h2>
+  </div>
+  <div class="sv-steps">
+    <article class="sv-step-card">
+      <div class="sv-step-head">
+        <div class="sv-step-badge">1</div>
+        <i class="ti ti-plug-connected sv-step-icon" aria-hidden="true"></i>
+      </div>
+      <p class="sv-step-kicker">Step 01</p>
+      <h3>Connect your channels</h3>
+      <p>Link WhatsApp, Messenger, Instagram, and Telegram with one simple OAuth flow.</p>
+    </article>
+
+    <article class="sv-step-card">
+      <div class="sv-step-head">
+        <div class="sv-step-badge">2</div>
+        <i class="ti ti-brain sv-step-icon" aria-hidden="true"></i>
+      </div>
+      <p class="sv-step-kicker">Step 02</p>
+      <h3>Train your AI</h3>
+      <p>Upload your catalogue, PDFs, and store info so the assistant learns what you sell.</p>
+    </article>
+
+    <article class="sv-step-card">
+      <div class="sv-step-head">
+        <div class="sv-step-badge">3</div>
+        <i class="ti ti-rocket sv-step-icon" aria-hidden="true"></i>
+      </div>
+      <p class="sv-step-kicker">Step 03</p>
+      <h3>Start selling 24/7</h3>
+      <p>Let the AI answer, recommend, and help close orders while you focus on the business.</p>
+    </article>
+  </div>
+</section>
+
+<section id="platforms">
+  <div class="sv-section-intro">
+    <p class="sv-eyebrow">Supported platforms</p>
+    <h2 class="sv-section-title sv-section-title--left">Meet your customers where they already talk</h2>
+  </div>
+  <div class="sv-platform-grid">
+    <article class="sv-platform-card sv-platform-card-whatsapp">
+      <div class="sv-platform-card-icon"><i class="ti ti-brand-whatsapp" aria-hidden="true"></i></div>
+      <h3>WhatsApp</h3>
+      <p>Answer customer questions and send order updates in the channel most merchants already use.</p>
+    </article>
+
+    <article class="sv-platform-card sv-platform-card-messenger">
+      <div class="sv-platform-card-icon"><i class="ti ti-brand-messenger" aria-hidden="true"></i></div>
+      <h3>Messenger</h3>
+      <p>Keep Facebook conversations organized and let the AI reply instantly across pages.</p>
+    </article>
+
+    <article class="sv-platform-card sv-platform-card-instagram">
+      <div class="sv-platform-card-icon"><i class="ti ti-brand-instagram" aria-hidden="true"></i></div>
+      <h3>Instagram</h3>
+      <p>Turn DMs into sales with fast replies, product suggestions, and helpful follow-ups.</p>
+    </article>
+
+    <article class="sv-platform-card sv-platform-card-telegram">
+      <div class="sv-platform-card-icon"><i class="ti ti-brand-telegram" aria-hidden="true"></i></div>
+      <h3>Telegram</h3>
+      <p>Serve community-first stores with a lightweight, reliable channel for instant support.</p>
+    </article>
+  </div>
+</section>
+
+<section id="showcase">
+  <div class="sv-section-intro">
+    <p class="sv-eyebrow">Why teams choose Sellervai</p>
+    <h2 class="sv-section-title sv-section-title--left">A closer look at the product value</h2>
+  </div>
+
+  <article class="sv-showcase-row">
+    <div class="sv-showcase-visual sv-showcase-visual-gradient" aria-hidden="true">
+      <i class="ti ti-database sv-showcase-icon"></i>
+    </div>
+    <div class="sv-showcase-content">
+      <p class="sv-showcase-eyebrow">AI that knows your catalogue</p>
+      <h3>Help customers faster with answers grounded in your own products</h3>
+      <p>
+        Upload product lists, PDFs, and store notes once, then let RAG keep the assistant
+        accurate as your inventory changes. Customers get useful replies instead of generic AI guesses.
+      </p>
+      <ul class="sv-check-list">
+        <li><i class="ti ti-check" aria-hidden="true"></i> Product-aware answers</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Easy content uploads</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Better recommendations</li>
+      </ul>
+      <a href="/register" class="sv-inline-link">See how it works <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </article>
+
+  <article class="sv-showcase-row sv-showcase-row--reverse">
+    <div class="sv-showcase-visual sv-showcase-visual-card" aria-hidden="true">
+      <div class="sv-mock-inbox">
+        <div class="sv-mock-inbox-top">
+          <span class="sv-pill sv-pill-info"><span class="sv-dot is-live"></span> One inbox</span>
+          <span class="sv-pill sv-pill-neutral">4 channels</span>
+        </div>
+        <div class="sv-mock-message">
+          <strong>Messenger</strong>
+          <p>Can I get this in blue?</p>
+        </div>
+        <div class="sv-mock-message sv-mock-message--reply">
+          <strong>Sellervai AI</strong>
+          <p>Yes, and it ships tomorrow. Here are the size options.</p>
+        </div>
+      </div>
+    </div>
+    <div class="sv-showcase-content">
+      <p class="sv-showcase-eyebrow">One inbox, every channel</p>
+      <h3>Stop jumping between platforms when the customer just wants a quick answer</h3>
+      <p>
+        Keep WhatsApp, Messenger, Instagram, and Telegram conversations in one working surface.
+        Your team sees the full context, replies faster, and never loses track of a conversation.
+      </p>
+      <ul class="sv-check-list">
+        <li><i class="ti ti-check" aria-hidden="true"></i> Unified conversation history</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Faster handoffs to humans</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Less missed follow-up work</li>
+      </ul>
+      <a href="/register" class="sv-inline-link">Explore the inbox <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </article>
+
+  <article class="sv-showcase-row">
+    <div class="sv-showcase-visual sv-showcase-visual-soft" aria-hidden="true">
+      <i class="ti ti-fingerprint sv-showcase-icon"></i>
+    </div>
+    <div class="sv-showcase-content">
+      <p class="sv-showcase-eyebrow">Set up in minutes, no code</p>
+      <h3>Launch without API keys, engineering help, or a long onboarding cycle</h3>
+      <p>
+        Sellervai is designed for real merchants, not technical teams. Connect your channels,
+        add your product knowledge, and start helping customers from day one.
+      </p>
+      <ul class="sv-check-list">
+        <li><i class="ti ti-check" aria-hidden="true"></i> OAuth-first setup</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Simple onboarding flow</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> No code required</li>
+      </ul>
+      <a href="/register" class="sv-inline-link">Start your setup <i class="ti ti-arrow-right" aria-hidden="true"></i></a>
+    </div>
+  </article>
+</section>
+
+<section id="stats">
+  <div class="sv-section-intro">
+    <p class="sv-eyebrow">Impact snapshot</p>
+    <h2 class="sv-section-title sv-section-title--left">Illustrative metrics for a busy merchant workflow</h2>
+  </div>
+  <div class="sv-stats-band">
+    <article class="sv-impact-tile">
+      <strong class="sv-impact-value sv-tnum">24/7</strong>
+      <span class="sv-impact-label">Availability for every incoming message</span>
+    </article>
+    <article class="sv-impact-tile">
+      <strong class="sv-impact-value sv-tnum">4 in 1</strong>
+      <span class="sv-impact-label">Channels managed from one inbox</span>
+    </article>
+    <article class="sv-impact-tile">
+      <strong class="sv-impact-value sv-tnum">10 min</strong>
+      <span class="sv-impact-label">Typical setup time for a first launch</span>
+    </article>
+    <article class="sv-impact-tile">
+      <strong class="sv-impact-value sv-tnum">0 lost</strong>
+      <span class="sv-impact-label">Messages when the AI is active</span>
+    </article>
+  </div>
+</section>
+
+<section id="testimonials">
+  <div class="sv-section-intro">
+    <p class="sv-eyebrow">What merchants say</p>
+    <h2 class="sv-section-title sv-section-title--left">Trusted by operators who need speed and clarity</h2>
+  </div>
+  <div class="sv-testimonial-grid">
+    <figure class="sv-testimonial-card">
+      <blockquote>
+        “We used to miss questions after closing hours. Now customers get instant answers and we
+        wake up to new orders already started.”
+      </blockquote>
+      <figcaption>
+        <span class="sv-avatar">AR</span>
+        <div>
+          <strong>Amina Rahman</strong>
+          <span>Boutique owner</span>
+        </div>
+      </figcaption>
+    </figure>
+
+    <figure class="sv-testimonial-card">
+      <blockquote>
+        “The shared inbox made the biggest difference. My team no longer repeats work across
+        apps, and we reply much faster.”
+      </blockquote>
+      <figcaption>
+        <span class="sv-avatar">MS</span>
+        <div>
+          <strong>Mahin S.</strong>
+          <span>Electronics reseller</span>
+        </div>
+      </figcaption>
+    </figure>
+
+    <figure class="sv-testimonial-card">
+      <blockquote>
+        “Setup was simple enough that we launched without technical help. That made the trial easy
+        to justify.”
+      </blockquote>
+      <figcaption>
+        <span class="sv-avatar">TR</span>
+        <div>
+          <strong>Tania R.</strong>
+          <span>Home goods store</span>
+        </div>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="sv-section-intro">
+    <p class="sv-eyebrow">Pricing</p>
+    <h2 class="sv-section-title sv-section-title--left">Choose a plan that matches your stage</h2>
+  </div>
+  <div class="sv-pricing-grid">
+    <article class="sv-pricing-card">
+      <h3>Free</h3>
+      <p class="sv-pricing-price"><span class="sv-tnum">0</span><small>/mo</small></p>
+      <p class="sv-pricing-copy">A simple way to try the product and connect your first channel.</p>
+      <ul class="sv-check-list">
+        <li><i class="ti ti-check" aria-hidden="true"></i> 1 store</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Basic AI responses</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Starter support</li>
+      </ul>
+      <a href="/register" class="sv-btn sv-btn-secondary sv-pricing-cta">Start free</a>
+    </article>
+
+    <article class="sv-pricing-card sv-pricing-card--featured">
+      <span class="sv-pricing-badge">Most popular</span>
+      <h3>Pro</h3>
+      <p class="sv-pricing-price"><span class="sv-tnum">29</span><small>/mo</small></p>
+      <p class="sv-pricing-copy">For growing stores that want one inbox, better automation, and more control.</p>
+      <ul class="sv-check-list">
+        <li><i class="ti ti-check" aria-hidden="true"></i> Multi-channel inbox</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Knowledge base uploads</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Priority support</li>
+      </ul>
+      <a href="/register" class="sv-btn sv-btn-hero sv-pricing-cta">Start Pro</a>
+    </article>
+
+    <article class="sv-pricing-card">
+      <h3>Business</h3>
+      <p class="sv-pricing-price"><span class="sv-tnum">Custom</span></p>
+      <p class="sv-pricing-copy">For teams that need onboarding, custom workflows, or volume-based support.</p>
+      <ul class="sv-check-list">
+        <li><i class="ti ti-check" aria-hidden="true"></i> Multi-store support</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Advanced onboarding</li>
+        <li><i class="ti ti-check" aria-hidden="true"></i> Sales assistance</li>
+      </ul>
+      <a href="/register" class="sv-btn sv-btn-secondary sv-pricing-cta">Contact sales</a>
+    </article>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="sv-section-intro">
+    <p class="sv-eyebrow">FAQ</p>
+    <h2 class="sv-section-title sv-section-title--left">Quick answers for store owners</h2>
+  </div>
+  <div class="sv-faq-list">
+    <details class="sv-faq-item">
+      <summary>Do I need technical skills to set up?</summary>
+      <p>No. The setup is built around simple channel connections and content uploads, so most merchants can get started without coding help.</p>
+    </details>
+    <details class="sv-faq-item">
+      <summary>Which platforms are supported?</summary>
+      <p>Sellervai supports WhatsApp, Facebook Messenger, Instagram, and Telegram.</p>
+    </details>
+    <details class="sv-faq-item">
+      <summary>How does the AI learn about my products?</summary>
+      <p>You can upload product lists, PDFs, and store details. The AI uses that content to answer customers and recommend relevant items.</p>
+    </details>
+    <details class="sv-faq-item">
+      <summary>Is my data and my customers' data secure?</summary>
+      <p>Yes. Tokens are stored securely, and the product is designed to keep merchant data within the merchant's own system.</p>
+    </details>
+    <details class="sv-faq-item">
+      <summary>Can I try it for free?</summary>
+      <p>Yes. The Free plan is meant for trying the flow before you move to a paid plan.</p>
+    </details>
+    <details class="sv-faq-item">
+      <summary>What languages does the AI support?</summary>
+      <p>The assistant is built for multilingual use, so it can work across common South-Asian and global customer conversations.</p>
+    </details>
+  </div>
+</section>
+
+<section id="cta" class="sv-final-cta">
+  <div class="sv-final-cta-content">
+    <p class="sv-eyebrow">Ready to launch?</p>
+    <h2>Start selling smarter today</h2>
+    <p>Bring your channels, product knowledge, and customer support into one AI-powered workspace.</p>
+    <a href="/register" class="sv-btn sv-btn-hero">
+      <i class="ti ti-rocket" aria-hidden="true"></i> Start for free
+    </a>
   </div>
 </section>
 
