@@ -5,7 +5,6 @@ from uuid import UUID
 import logging
 import httpx
 
-
 from app.lib.database import get_db, AsyncSessionLocal
 from app.models.models import ConnectedPage, ConnectedWhatsapp, ConnectedInstagram, Telegram, ServiceStatus, Store, Conversation, Message, PagePost, PostComment
 from app.services.message_processor import message_processor
