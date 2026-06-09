@@ -65,8 +65,10 @@ class Settings(BaseSettings):
     # Meta Integration
     META_APP_ID: str = ""
     META_APP_SECRET: str = ""
-    META_VERIFY_TOKEN: str = "bizzz_meta_webhook_token"
+    META_VERIFY_TOKEN: str = "sellervai_meta_webhook_token"
     META_WHATSAPP_CONFIG_ID: str = ""
+
+    BASE_URL: str = "http://localhost:8000"
     
     @property
     def cors_origins_list(self) -> List[str]:

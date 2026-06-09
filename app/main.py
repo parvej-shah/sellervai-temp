@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, FileResponse
 import logging
 
 from app.lib.config import settings
@@ -26,9 +27,9 @@ async def self_ping_task():
     async with httpx.AsyncClient() as client:
         try:
             r = await client.get("http://localhost:8000/ping", timeout=5)
-            logger.info(f"\nSelf-ping: {r.status_code}")
+            logger.info(f"Self-ping: {r.status_code}")
         except Exception as e:
-            logger.warning(f"\nSelf-ping failed: {e}")
+            logger.warning(f"Self-ping failed: {e}")
 
 
 @asynccontextmanager
@@ -71,6 +72,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
 app.include_router(pages.router)
@@ -90,7 +92,6 @@ app.include_router(posts.router)
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
     return {"status": "healthy"}
 
 
@@ -104,14 +105,16 @@ def read_root():
     return {"message": "Welcome to your persistent FastAPI application!"}
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("static/favicon.ico")
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Global exception handler."""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
+    return JSONResponse(status_code=500,content={"detail": "Internal server error"})
 
 
 if __name__ == "__main__":

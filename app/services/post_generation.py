@@ -120,7 +120,13 @@ Just provide the post text, no explanations."""
         Returns the post_id if successful, empty string on failure.
         """
         try:
-            async with httpx.AsyncClient() as client:
+            timeout = httpx.Timeout(
+                connect=10.0,
+                read=60.0,
+                write=60.0,
+                pool=60.0,
+            )
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 url = f"https://graph.facebook.com/v25.0/{page_id}/feed"
                 payload = {
                     "message": post_text,
@@ -154,7 +160,13 @@ Just provide the post text, no explanations."""
         Returns the post_id if successful, empty string on failure.
         """
         try:
-            async with httpx.AsyncClient() as client:
+            timeout = httpx.Timeout(
+                connect=10.0,
+                read=60.0,
+                write=60.0,
+                pool=60.0,
+            )
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 # Instagram requires media creation first, which is complex
                 # For now, we'll use the media endpoint with a text container
                 # In production, you'd generate an image with the text

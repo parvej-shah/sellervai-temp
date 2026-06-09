@@ -53,6 +53,7 @@ async def store_detail(store_id: str):
   <p id="store-settings-message" class="muted"></p>
 </section>
 
+<!--
 <section>
   <h2>Verification token</h2>
   <p class="muted">Use this token when configuring Facebook webhook verification for this store.</p>
@@ -61,6 +62,7 @@ async def store_detail(store_id: str):
     <button type="button" class="secondary copy-button" id="copy-store-verification-token"><span aria-hidden="true">📋</span><span>Copy token</span></button>
   </div>
 </section>
+-->
 
 <section>
   <h2>Products</h2>
@@ -266,6 +268,7 @@ document.getElementById("store-settings-form").addEventListener("submit", async 
     setMessage("store-settings-message", "Store saved.");
   }} catch (error) {{ setMessage("store-settings-message", error.message || "Could not save store"); }}
 }});
+/*
 document.getElementById("copy-store-verification-token").addEventListener("click", async () => {{
   const tokenInput = document.getElementById("store-verification-token");
   const button = document.getElementById("copy-store-verification-token");
@@ -276,6 +279,7 @@ document.getElementById("copy-store-verification-token").addEventListener("click
     setMessage("connection-message", "Verification token copied.");
   }} catch (error) {{ setMessage("connection-message", error.message || "Could not copy"); }}
 }});
+*/
 document.querySelectorAll("button[data-copy-webhook]").forEach((button) => {{
   button.addEventListener("click", async () => {{
     const url = webhookUrl(button.dataset.copyWebhook);
@@ -580,6 +584,7 @@ async function disconnectTelegram(telegram_id) {{
 
 // Meta Connect JS - Facebook
 document.getElementById("btn-connect-facebook")?.addEventListener("click", async (event) => {{
+    console.log("Connect Facebook button clicked");
     if (typeof FB === 'undefined') {{
         alert("Facebook SDK is not loaded. Please disable ad-blockers and try again.");
         return;
@@ -610,7 +615,7 @@ document.getElementById("btn-connect-facebook")?.addEventListener("click", async
             setMessage("connection-message", "Facebook login cancelled or failed.");
         }}
     }}, {{
-      scope: 'public_profile,pages_show_list,pages_messaging,pages_read_engagement,pages_manage_posts,pages_manage_metadata,pages_read_user_content'
+      scope: 'public_profile,pages_show_list,pages_messaging,pages_read_engagement,pages_manage_posts,pages_manage_metadata,pages_read_user_content,pages_manage_engagement'
     }});
     // TODO: ads_management should be added later
 }});
@@ -646,7 +651,7 @@ document.getElementById("btn-connect-instagram-oauth")?.addEventListener("click"
         }} else {{
             setMessage("connection-message", "Instagram login cancelled or failed.");
         }}
-    }}, {{scope: 'pages_show_list,pages_messaging,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments,instagram_content_publish,public_profile,pages_manage_posts'}});
+    }}, {{scope: 'pages_show_list,pages_messaging,pages_read_engagement,instagram_basic,instagram_manage_messages,instagram_manage_comments,instagram_content_publish,public_profile,pages_manage_posts,pages_manage_engagement'}});
     // TODO: ads_management will be added later
 }});
 
@@ -690,7 +695,10 @@ document.getElementById("btn-connect-whatsapp")?.addEventListener("click", async
 
     FB.login(function(response) {{
         if (response.authResponse && response.authResponse.code) {{
-            const payload = {{ code: response.authResponse.code }};
+            const payload = {{ 
+              code: response.authResponse.code,
+              redirect_uri: window.location.href
+            }};
             setMessage("connection-message", "Connecting WhatsApp...");
             fetchJson(`/api/meta/connect-whatsapp/{store_id}`, {{
                 method: "POST",
