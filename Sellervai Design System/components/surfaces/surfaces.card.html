@@ -1,0 +1,56 @@
+<!-- @dsCard group="Components" viewport="700x320" name="Cards & Stat tiles" subtitle="Dashboard panels and metric tiles" -->
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
+  <style>
+    body { margin: 0; padding: 24px; display: grid; gap: 16px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  </style>
+</head>
+<body>
+  <div class="stats">
+    <article class="sv-stat">
+      <div class="sv-stat-head">
+        <span class="sv-stat-label">Conversations today</span>
+        <span class="sv-stat-icon"><i class="ti ti-messages"></i></span>
+      </div>
+      <div class="sv-stat-value sv-tnum">248</div>
+      <span class="sv-stat-delta is-up"><i class="ti ti-trending-up"></i>+12%</span>
+    </article>
+    <article class="sv-stat">
+      <div class="sv-stat-head">
+        <span class="sv-stat-label">Orders</span>
+        <span class="sv-stat-icon"><i class="ti ti-shopping-bag"></i></span>
+      </div>
+      <div class="sv-stat-value sv-tnum">37</div>
+      <span class="sv-stat-delta is-down"><i class="ti ti-trending-down"></i>-4%</span>
+    </article>
+    <article class="sv-stat">
+      <div class="sv-stat-head">
+        <span class="sv-stat-label">AI status</span>
+        <span class="sv-stat-icon"><i class="ti ti-robot"></i></span>
+      </div>
+      <div class="sv-stat-value" style="font-size:var(--sv-fs-lg)">
+        <span class="sv-pill sv-pill-success"><span class="sv-dot is-live"></span>Online</span>
+      </div>
+    </article>
+  </div>
+
+  <section class="sv-card">
+    <header class="sv-card-header">
+      <h3 class="sv-card-title">Recent orders</h3>
+      <button class="sv-btn sv-btn-ghost sv-btn-sm">View all<i class="ti ti-chevron-right"></i></button>
+    </header>
+    <div class="sv-card-body" style="color:var(--sv-text-muted)">
+      Card body — compose tables, forms, lists, or platform rows here.
+    </div>
+    <footer class="sv-card-footer">
+      <button class="sv-btn sv-btn-secondary sv-btn-sm">Export CSV</button>
+    </footer>
+  </section>
+</body>
+</html>

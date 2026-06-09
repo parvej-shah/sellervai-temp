@@ -1,0 +1,24 @@
+<!-- @dsCard group="Type" viewport="700x300" name="Type scale" subtitle="Display → micro, with the matching --sv-fs token" -->
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    body { margin: 0; padding: 24px; font-family: var(--sv-font-sans); }
+    .r { display: flex; align-items: baseline; gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--sv-border); }
+    .r:last-child { border-bottom: none; }
+    .t { font-weight: 700; letter-spacing: -.02em; color: var(--sv-text); line-height: 1.1; }
+    .tok { margin-left: auto; font-family: var(--sv-font-mono); font-size: 11px; color: var(--sv-text-muted); }
+  </style>
+</head>
+<body>
+  <div class="r"><span class="t" style="font-size:36px">Display</span><span class="tok">--sv-fs-2xl · 36</span></div>
+  <div class="r"><span class="t" style="font-size:28px">Page title</span><span class="tok">--sv-fs-xl · 28</span></div>
+  <div class="r"><span class="t" style="font-size:22px">Section heading</span><span class="tok">--sv-fs-lg · 22</span></div>
+  <div class="r"><span class="t" style="font-size:18px;font-weight:600">Card title</span><span class="tok">--sv-fs-md · 18</span></div>
+  <div class="r"><span class="t" style="font-size:16px;font-weight:400">Body — readable for long sessions</span><span class="tok">--sv-fs-base · 16</span></div>
+  <div class="r"><span class="t" style="font-size:14px;font-weight:400">Secondary / dense UI</span><span class="tok">--sv-fs-sm · 14</span></div>
+  <div class="r"><span class="t" style="font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--sv-text-muted)">Micro label</span><span class="tok">--sv-fs-xs · 12</span></div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Sellervai — Webfonts
+   Plus Jakarta Sans + JetBrains Mono, served from Google Fonts CDN.
+   The original repo shipped no custom font (Pico system stack); these
+   are an intentional recommendation per the design brief. Swap the
+   @import for self-hosted @font-face if you need offline / GDPR builds.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");

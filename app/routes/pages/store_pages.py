@@ -8,121 +8,143 @@ router = APIRouter()
 @router.get("/stores/{store_id}", response_class=HTMLResponse)
 async def store_detail(store_id: str):
     body = f"""
-<h1>Store</h1>
-<p id="store-summary" class="muted"></p>
-<div class="actions">
-  <a class="button secondary" href="/dashboard">Back to dashboard</a>
-  <a class="button secondary" href="/orders">Orders placeholder</a>
-  <a class="button" href="/posts/{store_id}">📱 Post Management</a>
-  <button type="button" class="secondary" onclick="logout()">Logout</button>
-</div>
-
-<section>
-  <h2>Store settings</h2>
-  <form id="store-settings-form">
-    <label>Name
-      <input name="name" value="Demo Store" required>
-    </label>
-    <label>Description
-      <textarea name="description">What this store sells or does.</textarea>
-    </label>
-    <label>Tone
-      <input name="tone" value="friendly">
-    </label>
-    <label>Personality prompt
-      <textarea name="personality_prompt">Reply clearly and briefly.</textarea>
-    </label>
-    <label>Welcome message
-      <textarea name="welcome_message">Welcome message for customers.</textarea>
-    </label>
-    <label>Language
-      <select name="language">
-        <option value="adaptive">Adaptive (auto-detect)</option>
-        <option value="english">English</option>
-        <option value="bangla">Bangla</option>
-      </select>
-    </label>
-    <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
-      <span>Accept Orders</span>
-      <input type="checkbox" name="orders_enabled" id="orders-enabled-toggle" style="width:20px;height:20px;cursor:pointer;">
-    </label>
-    <div class="actions">
-      <button type="submit">Save store</button>
-    </div>
-  </form>
-  <p id="store-settings-message" class="muted"></p>
-</section>
-
-<!--
-<section>
-  <h2>Verification token</h2>
-  <p class="muted">Use this token when configuring Facebook webhook verification for this store.</p>
-  <div class="actions" style="justify-content:flex-start;">
-    <input id="store-verification-token" readonly style="max-width:520px;">
-    <button type="button" class="secondary copy-button" id="copy-store-verification-token"><span aria-hidden="true">📋</span><span>Copy token</span></button>
+<section class="sv-page-header">
+  <div class="sv-page-title">
+    <h1>Store workspace</h1>
+    <p id="store-summary" class="sv-page-lead">Loading store details...</p>
+  </div>
+  <div class="sv-page-actions">
+    <a class="sv-btn sv-btn-secondary" href="/dashboard">Back to dashboard</a>
+    <a class="sv-btn sv-btn-secondary" href="/orders">Orders placeholder</a>
+    <a class="sv-btn sv-btn-primary" href="/posts/{store_id}"><i class="ti ti-brand-instagram"></i> Post management</a>
   </div>
 </section>
--->
 
-<section>
-  <h2>Products</h2>
-  <p class="muted">Manage the products available in your store.</p>
-  <div class="actions" style="justify-content:flex-start;margin-bottom:16px;">
-    <button type="button" id="btn-add-product">+ Add Product</button>
+<section class="sv-card">
+  <header class="sv-card-header">
+    <h2 class="sv-card-title"><i class="ti ti-settings"></i> Store settings</h2>
+  </header>
+  <div class="sv-card-body sv-stack">
+    <form id="store-settings-form" class="sv-form">
+      <div class="sv-form-grid">
+        <label class="sv-field">
+          <span class="sv-field-label">Name</span>
+          <input name="name" value="Demo Store" required>
+        </label>
+        <label class="sv-field">
+          <span class="sv-field-label">Tone</span>
+          <input name="tone" value="friendly">
+        </label>
+        <label class="sv-field is-span-2">
+          <span class="sv-field-label">Description</span>
+          <textarea name="description">What this store sells or does.</textarea>
+        </label>
+        <label class="sv-field is-span-2">
+          <span class="sv-field-label">Personality prompt</span>
+          <textarea name="personality_prompt">Reply clearly and briefly.</textarea>
+        </label>
+        <label class="sv-field is-span-2">
+          <span class="sv-field-label">Welcome message</span>
+          <textarea name="welcome_message">Welcome message for customers.</textarea>
+        </label>
+        <label class="sv-field">
+          <span class="sv-field-label">Language</span>
+          <select name="language">
+            <option value="adaptive">Adaptive (auto-detect)</option>
+            <option value="english">English</option>
+            <option value="bangla">Bangla</option>
+          </select>
+        </label>
+        <label class="sv-field">
+          <span class="sv-field-label">Orders</span>
+          <span class="sv-toggle-row">
+            <input type="checkbox" name="orders_enabled" id="orders-enabled-toggle">
+            <span>Accept orders automatically</span>
+          </span>
+        </label>
+      </div>
+      <div class="sv-page-actions">
+        <button type="submit" class="sv-btn sv-btn-primary"><i class="ti ti-device-floppy"></i> Save store</button>
+      </div>
+    </form>
+    <p id="store-settings-message" class="sv-muted"></p>
   </div>
-  <div id="product-form-wrap" style="display:none;margin-bottom:16px;">
-    <form id="product-form" style="background:var(--surface,#1e1e2e);padding:16px;border-radius:8px;display:grid;gap:10px;">
+</section>
+
+<section class="sv-card">
+  <header class="sv-card-header">
+    <h2 class="sv-card-title"><i class="ti ti-package"></i> Products</h2>
+    <button type="button" class="sv-btn sv-btn-primary sv-btn-sm" id="btn-add-product"><i class="ti ti-plus"></i> Add product</button>
+  </header>
+  <div class="sv-card-body sv-stack">
+    <p class="sv-muted">Manage the products available in your store.</p>
+    <div id="product-form-wrap" class="sv-card sv-hidden">
+      <div class="sv-card-body">
+        <form id="product-form" class="sv-form">
       <input type="hidden" name="product_id">
-      <label>Product Code <input name="product_code" placeholder="e.g. SKU-001" required></label>
-      <label>Name <input name="name" placeholder="Product name" required></label>
-      <label>Description <textarea name="description" placeholder="Optional description"></textarea></label>
-      <label>Image URL <input name="image" placeholder="https://..."></label>
-      <label>Price <input name="price" type="number" step="0.01" min="0" required></label>
-      <label>Discount <input name="discount" type="number" step="0.01" min="0" placeholder="0"></label>
-      <label>Stock Count <input name="available_count" type="number" min="0" value="0" required></label>
-      <label style="display:flex;align-items:center;gap:10px;"><span>Enabled</span><input type="checkbox" name="enabled" checked style="width:18px;height:18px;"></label>
-      <div class="actions">
-        <button type="submit">Save Product</button>
-        <button type="button" class="secondary" id="btn-cancel-product">Cancel</button>
+          <div class="sv-form-grid">
+            <label class="sv-field"><span class="sv-field-label">Product code</span><input name="product_code" placeholder="e.g. SKU-001" required></label>
+            <label class="sv-field"><span class="sv-field-label">Name</span><input name="name" placeholder="Product name" required></label>
+            <label class="sv-field is-span-2"><span class="sv-field-label">Description</span><textarea name="description" placeholder="Optional description"></textarea></label>
+            <label class="sv-field"><span class="sv-field-label">Image URL</span><input name="image" placeholder="https://..."></label>
+            <label class="sv-field"><span class="sv-field-label">Price</span><input name="price" type="number" step="0.01" min="0" required></label>
+            <label class="sv-field"><span class="sv-field-label">Discount</span><input name="discount" type="number" step="0.01" min="0" placeholder="0"></label>
+            <label class="sv-field"><span class="sv-field-label">Stock count</span><input name="available_count" type="number" min="0" value="0" required></label>
+            <label class="sv-field"><span class="sv-field-label">Availability</span><span class="sv-toggle-row"><input type="checkbox" name="enabled" checked><span>Enabled</span></span></label>
+          </div>
+          <div class="sv-page-actions">
+            <button type="submit" class="sv-btn sv-btn-primary">Save product</button>
+            <button type="button" class="sv-btn sv-btn-secondary" id="btn-cancel-product">Cancel</button>
+          </div>
+        </form>
+        <p id="product-form-msg" class="sv-muted"></p>
       </div>
-    </form>
-    <p id="product-form-msg" class="muted"></p>
+    </div>
+    <div id="products-list"><p class="sv-muted">Loading products...</p></div>
   </div>
-  <div id="products-list"><p class="muted">Loading products...</p></div>
 </section>
 
-<section>
-  <h2>Coupons</h2>
-  <p class="muted">Create discount coupons for your customers.</p>
-  <div class="actions" style="justify-content:flex-start;margin-bottom:16px;">
-    <button type="button" id="btn-add-coupon">+ Add Coupon</button>
-  </div>
-  <div id="coupon-form-wrap" style="display:none;margin-bottom:16px;">
-    <form id="coupon-form" style="background:var(--surface,#1e1e2e);padding:16px;border-radius:8px;display:grid;gap:10px;">
+<section class="sv-card">
+  <header class="sv-card-header">
+    <h2 class="sv-card-title"><i class="ti ti-ticket"></i> Coupons</h2>
+    <button type="button" class="sv-btn sv-btn-primary sv-btn-sm" id="btn-add-coupon"><i class="ti ti-plus"></i> Add coupon</button>
+  </header>
+  <div class="sv-card-body sv-stack">
+    <p class="sv-muted">Create discount coupons for your customers.</p>
+    <div id="coupon-form-wrap" class="sv-card sv-hidden">
+      <div class="sv-card-body">
+        <form id="coupon-form" class="sv-form">
       <input type="hidden" name="coupon_id">
-      <label>Code <input name="code" placeholder="e.g. SAVE10" required></label>
-      <label>Description <input name="description" placeholder="Optional"></label>
-      <label>Discount Amount (fixed) <input name="discount_amount" type="number" step="0.01" min="0" placeholder="0"></label>
-      <label>Discount % <input name="discount_percent" type="number" step="0.01" min="0" max="100" placeholder="0"></label>
-      <label>Min Order Amount <input name="min_order_amount" type="number" step="0.01" min="0" placeholder="0"></label>
-      <label>Max Uses <input name="max_uses" type="number" min="1" placeholder="Unlimited"></label>
-      <label>Expires At <input name="expires_at" type="datetime-local"></label>
-      <label style="display:flex;align-items:center;gap:10px;"><span>Enabled</span><input type="checkbox" name="enabled" checked style="width:18px;height:18px;"></label>
-      <div class="actions">
-        <button type="submit">Save Coupon</button>
-        <button type="button" class="secondary" id="btn-cancel-coupon">Cancel</button>
+          <div class="sv-form-grid">
+            <label class="sv-field"><span class="sv-field-label">Code</span><input name="code" placeholder="e.g. SAVE10" required></label>
+            <label class="sv-field"><span class="sv-field-label">Description</span><input name="description" placeholder="Optional"></label>
+            <label class="sv-field"><span class="sv-field-label">Discount amount</span><input name="discount_amount" type="number" step="0.01" min="0" placeholder="0"></label>
+            <label class="sv-field"><span class="sv-field-label">Discount %</span><input name="discount_percent" type="number" step="0.01" min="0" max="100" placeholder="0"></label>
+            <label class="sv-field"><span class="sv-field-label">Min order amount</span><input name="min_order_amount" type="number" step="0.01" min="0" placeholder="0"></label>
+            <label class="sv-field"><span class="sv-field-label">Max uses</span><input name="max_uses" type="number" min="1" placeholder="Unlimited"></label>
+            <label class="sv-field"><span class="sv-field-label">Expires at</span><input name="expires_at" type="datetime-local"></label>
+            <label class="sv-field"><span class="sv-field-label">Availability</span><span class="sv-toggle-row"><input type="checkbox" name="enabled" checked><span>Enabled</span></span></label>
+          </div>
+          <div class="sv-page-actions">
+            <button type="submit" class="sv-btn sv-btn-primary">Save coupon</button>
+            <button type="button" class="sv-btn sv-btn-secondary" id="btn-cancel-coupon">Cancel</button>
+          </div>
+        </form>
+        <p id="coupon-form-msg" class="sv-muted"></p>
       </div>
-    </form>
-    <p id="coupon-form-msg" class="muted"></p>
+    </div>
+    <div id="coupons-list"><p class="sv-muted">Loading coupons...</p></div>
   </div>
-  <div id="coupons-list"><p class="muted">Loading coupons...</p></div>
 </section>
 
-<section>
-  <h2>Orders</h2>
-  <p class="muted">View and manage orders placed through chatbot.</p>
-  <div class="actions" style="justify-content:flex-start;margin-bottom:12px;">
-    <select id="order-status-filter">
+<section class="sv-card">
+  <header class="sv-card-header">
+    <h2 class="sv-card-title"><i class="ti ti-shopping-cart"></i> Orders</h2>
+  </header>
+  <div class="sv-card-body sv-stack">
+    <p class="sv-muted">View and manage orders placed through chatbot.</p>
+    <div class="sv-toolbar">
+      <select id="order-status-filter">
       <option value="">All statuses</option>
       <option value="PENDING">Pending</option>
       <option value="CONFIRMED">Confirmed</option>
@@ -131,80 +153,106 @@ async def store_detail(store_id: str):
       <option value="DELIVERED">Delivered</option>
       <option value="CANCELLED">Cancelled</option>
     </select>
-    <button type="button" id="btn-refresh-orders" class="secondary">Refresh</button>
+      <button type="button" id="btn-refresh-orders" class="sv-btn sv-btn-secondary">Refresh</button>
+    </div>
+    <div id="orders-list"><p class="sv-muted">Loading orders...</p></div>
   </div>
-  <div id="orders-list"><p class="muted">Loading orders...</p></div>
 </section>
 
-<section>
-  <h2>Meta Connections</h2>
-  
-  <div style="margin-bottom: 24px;">
-    <h3>Facebook Messenger</h3>
-    <p class="muted">Connect your Facebook Page for Messenger.</p>
-    <div id="facebook-connections-list" style="margin-bottom: 12px;"></div>
-    <div class="actions" style="margin-top:8px;">
-      <button type="button" id="btn-connect-facebook">Connect Facebook</button>
-    </div>
-  </div>
-
-  <div>
-    <h3>Instagram</h3>
-    <p class="muted">Connect your Instagram Business account (must be linked to a Facebook Page).</p>
-    <div id="instagram-connections-list" style="margin-bottom: 12px;"></div>
-    <form id="form-connect-instagram">
-      <label>User Access Token (Optional Manual Fallback)
-        <input name="user_access_token" placeholder="Paste Graph API Explorer token if OAuth fails...">
-      </label>
-      <div class="actions" style="margin-top:8px;">
-        <button type="button" id="btn-connect-instagram-oauth">Connect via OAuth</button>
-        <button type="submit" class="secondary">Connect with Token</button>
+<section class="sv-grid-auto">
+  <article class="sv-card">
+    <header class="sv-card-header">
+      <h2 class="sv-card-title"><i class="ti ti-brand-messenger"></i> Meta connections</h2>
+    </header>
+    <div class="sv-card-body sv-stack">
+      <div class="sv-stack-sm">
+        <h3>Facebook Messenger</h3>
+        <p class="sv-muted">Connect your Facebook Page for Messenger.</p>
+        <div id="facebook-connections-list"></div>
+        <div class="sv-inline-actions">
+          <button type="button" class="sv-btn sv-btn-primary" id="btn-connect-facebook">Connect Facebook</button>
+        </div>
       </div>
-    </form>
-  </div>
-</section>
 
-<section>
-  <h2>WhatsApp Connection</h2>
-  <p class="muted">Connect WhatsApp Business using Embedded Signup credentials.</p>
-  <div id="whatsapp-connections-list" style="margin-bottom: 12px;"></div>
-  <div class="actions" style="margin-top:8px;">
-    <button type="button" id="btn-connect-whatsapp">Connect WhatsApp</button>
-  </div>
-</section>
-
-<section>
-  <h2>Global Meta Webhook</h2>
-  <p class="muted">Configure this single Webhook URL in your Meta App Dashboard. It handles Messenger, Instagram, and WhatsApp.</p>
-  <label>Webhook URL
-    <input id="webhook-url-meta" readonly>
-  </label>
-  <div class="actions">
-    <button type="button" class="secondary" data-copy-webhook="meta">Copy webhook URL</button>
-  </div>
-</section>
-
-<section>
-  <h2>Telegram Connection</h2>
-  <div id="telegram-connections-list" style="margin-bottom: 12px;"></div>
-  <form class="connection-form" data-platform="telegram">
-    <label>Telegram bot token
-      <input name="bot_token" value="demo-telegram-token" required>
-    </label>
-    <label>Bot username
-      <input name="bot_username" value="demo_bot">
-    </label>
-    <label>Webhook URL
-      <input id="webhook-url-telegram" readonly>
-    </label>
-    <div class="actions">
-      <button type="button" class="secondary" data-copy-webhook="telegram">Copy webhook URL</button>
-      <button type="submit">Save Telegram</button>
-      <button type="button" class="secondary" data-webhook="telegram">Verify webhook</button>
+      <div class="sv-section-divider sv-stack-sm">
+        <h3>Instagram</h3>
+        <p class="sv-muted">Connect your Instagram Business account. It must already be linked to a Facebook Page.</p>
+        <div id="instagram-connections-list"></div>
+        <form id="form-connect-instagram" class="sv-form">
+          <label class="sv-field">
+            <span class="sv-field-label">User access token <span class="sv-optional">(optional manual fallback)</span></span>
+            <input name="user_access_token" placeholder="Paste Graph API Explorer token if OAuth fails...">
+          </label>
+          <div class="sv-inline-actions">
+            <button type="button" class="sv-btn sv-btn-primary" id="btn-connect-instagram-oauth">Connect via OAuth</button>
+            <button type="submit" class="sv-btn sv-btn-secondary">Connect with token</button>
+          </div>
+        </form>
+      </div>
     </div>
-  </form>
+  </article>
 
-  <p id="connection-message" class="muted"></p>
+  <article class="sv-card">
+    <header class="sv-card-header">
+      <h2 class="sv-card-title"><i class="ti ti-brand-whatsapp"></i> WhatsApp</h2>
+    </header>
+    <div class="sv-card-body sv-stack">
+      <p class="sv-muted">Connect WhatsApp Business using Embedded Signup credentials.</p>
+      <div id="whatsapp-connections-list"></div>
+      <div class="sv-inline-actions">
+        <button type="button" class="sv-btn sv-btn-primary" id="btn-connect-whatsapp">Connect WhatsApp</button>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="sv-grid-auto">
+  <article class="sv-card">
+    <header class="sv-card-header">
+      <h2 class="sv-card-title"><i class="ti ti-webhook"></i> Global Meta webhook</h2>
+    </header>
+    <div class="sv-card-body sv-stack">
+      <p class="sv-muted">Configure this single webhook URL in your Meta App Dashboard. It handles Messenger, Instagram, and WhatsApp.</p>
+      <label class="sv-field">
+        <span class="sv-field-label">Webhook URL</span>
+        <input id="webhook-url-meta" readonly>
+      </label>
+      <div class="sv-inline-actions">
+        <button type="button" class="sv-btn sv-btn-secondary" data-copy-webhook="meta">Copy webhook URL</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="sv-card">
+    <header class="sv-card-header">
+      <h2 class="sv-card-title"><i class="ti ti-brand-telegram"></i> Telegram</h2>
+    </header>
+    <div class="sv-card-body sv-stack">
+      <div id="telegram-connections-list"></div>
+      <form class="connection-form sv-form" data-platform="telegram">
+        <div class="sv-form-grid">
+          <label class="sv-field">
+            <span class="sv-field-label">Telegram bot token</span>
+            <input name="bot_token" value="demo-telegram-token" required>
+          </label>
+          <label class="sv-field">
+            <span class="sv-field-label">Bot username</span>
+            <input name="bot_username" value="demo_bot">
+          </label>
+          <label class="sv-field is-span-2">
+            <span class="sv-field-label">Webhook URL</span>
+            <input id="webhook-url-telegram" readonly>
+          </label>
+        </div>
+        <div class="sv-inline-actions">
+          <button type="button" class="sv-btn sv-btn-secondary" data-copy-webhook="telegram">Copy webhook URL</button>
+          <button type="submit" class="sv-btn sv-btn-primary">Save Telegram</button>
+          <button type="button" class="sv-btn sv-btn-secondary" data-webhook="telegram">Verify webhook</button>
+        </div>
+      </form>
+      <p id="connection-message" class="sv-muted"></p>
+    </div>
+  </article>
 </section>
 """
     script = f"""
@@ -319,25 +367,25 @@ async function loadProducts() {{
   try {{
     const products = await fetchJson(`/api/store/{store_id}/products/`);
     const el = document.getElementById("products-list");
-    if (!products.length) {{ el.innerHTML = "<p class=\'muted\'>No products yet.</p>"; return; }}
-    el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:14px;">
-      <thead><tr style="text-align:left;border-bottom:1px solid #333;">
-        <th style="padding:8px;">Code</th><th style="padding:8px;">Name</th><th style="padding:8px;">Price</th>
-        <th style="padding:8px;">Discount</th><th style="padding:8px;">Stock</th><th style="padding:8px;">Status</th><th style="padding:8px;">Actions</th>
+    if (!products.length) {{ el.innerHTML = '<div class="sv-empty"><span class="sv-empty-icon"><i class="ti ti-package-off"></i></span><h3>No products yet</h3><p>Add your first product to help the AI recommend and sell it.</p></div>'; return; }}
+    el.innerHTML = `<div class="sv-table-wrap"><table class="sv-table">
+      <thead><tr>
+        <th>Code</th><th>Name</th><th class="sv-tnum">Price</th>
+        <th class="sv-tnum">Discount</th><th class="sv-tnum">Stock</th><th>Status</th><th>Actions</th>
       </tr></thead>
-      <tbody>${{products.map(p => `<tr style="border-bottom:1px solid #222;">
-        <td style="padding:8px;"><code>${{p.product_code}}</code></td>
-        <td style="padding:8px;">${{p.name}}</td>
-        <td style="padding:8px;">${{p.price}}</td>
-        <td style="padding:8px;">${{p.discount || '-'}}</td>
-        <td style="padding:8px;">${{p.available_count}}</td>
-        <td style="padding:8px;">${{p.enabled ? '✅' : '❌'}}</td>
-        <td style="padding:8px;display:flex;gap:6px;">
-          <button class="secondary" style="padding:4px 10px;font-size:12px;" onclick="editProduct(${{JSON.stringify(p)}})">Edit</button>
-          <button class="secondary" style="padding:4px 10px;font-size:12px;color:#f66;" onclick="deleteProduct('${{p.id}}')">Del</button>
-        </td>
-      </tr>`).join('')}}</tbody></table>`;
-  }} catch(e) {{ document.getElementById("products-list").innerHTML = `<p class="muted">${{e.message}}</p>`; }}
+      <tbody>${{products.map(p => `<tr>
+        <td><code class="sv-code">${{p.product_code}}</code></td>
+        <td>${{p.name}}</td>
+        <td class="sv-tnum">${{p.price}}</td>
+        <td class="sv-tnum">${{p.discount || '-'}}</td>
+        <td class="sv-tnum">${{p.available_count}}</td>
+        <td><span class="sv-pill ${{p.enabled ? 'sv-pill-success' : 'sv-pill-neutral'}}">${{p.enabled ? 'Enabled' : 'Disabled'}}</span></td>
+        <td><div class="sv-inline-actions">
+          <button class="sv-btn sv-btn-secondary sv-btn-sm" onclick='editProduct(${{JSON.stringify(p)}})'>Edit</button>
+          <button class="sv-btn sv-btn-danger sv-btn-sm" onclick="deleteProduct('${{p.id}}')">Delete</button>
+        </div></td>
+      </tr>`).join('')}}</tbody></table></div>`;
+  }} catch(e) {{ document.getElementById("products-list").innerHTML = `<p class="sv-muted">${{e.message}}</p>`; }}
 }}
 function editProduct(p) {{
   editingProductId = p.id;
@@ -352,17 +400,17 @@ function editProduct(p) {{
   form.elements.discount.value = p.discount || "";
   form.elements.available_count.value = p.available_count;
   form.elements.enabled.checked = p.enabled;
-  document.getElementById("product-form-wrap").style.display = "block";
+  document.getElementById("product-form-wrap").classList.remove("sv-hidden");
 }}
 document.getElementById("btn-add-product").addEventListener("click", () => {{
   editingProductId = null;
   document.getElementById("product-form").reset();
   document.getElementById("product-form").elements.product_code.readOnly = false;
   document.getElementById("product-form").elements.enabled.checked = true;
-  document.getElementById("product-form-wrap").style.display = "block";
+  document.getElementById("product-form-wrap").classList.remove("sv-hidden");
 }});
 document.getElementById("btn-cancel-product").addEventListener("click", () => {{
-  document.getElementById("product-form-wrap").style.display = "none";
+  document.getElementById("product-form-wrap").classList.add("sv-hidden");
 }});
 document.getElementById("product-form").addEventListener("submit", async (e) => {{
   e.preventDefault();
@@ -385,7 +433,7 @@ document.getElementById("product-form").addEventListener("submit", async (e) => 
       await fetchJson(`/api/store/{store_id}/products/`, {{ method:"POST", headers:{{"Content-Type":"application/json"}}, body:JSON.stringify(payload) }});
     }}
     setMessage("product-form-msg", "Saved.");
-    document.getElementById("product-form-wrap").style.display = "none";
+    document.getElementById("product-form-wrap").classList.add("sv-hidden");
     loadProducts();
   }} catch(err) {{ setMessage("product-form-msg", err.message || "Error saving product"); }}
 }});
@@ -403,23 +451,23 @@ async function loadCoupons() {{
   try {{
     const coupons = await fetchJson(`/api/store/{store_id}/coupons/`);
     const el = document.getElementById("coupons-list");
-    if (!coupons.length) {{ el.innerHTML = "<p class=\'muted\'>No coupons yet.</p>"; return; }}
-    el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:14px;">
-      <thead><tr style="text-align:left;border-bottom:1px solid #333;">
-        <th style="padding:8px;">Code</th><th style="padding:8px;">Discount</th>
-        <th style="padding:8px;">Used</th><th style="padding:8px;">Status</th><th style="padding:8px;">Actions</th>
+    if (!coupons.length) {{ el.innerHTML = '<div class="sv-empty"><span class="sv-empty-icon"><i class="ti ti-ticket-off"></i></span><h3>No coupons yet</h3><p>Create a coupon when you want to drive campaigns or reward loyal customers.</p></div>'; return; }}
+    el.innerHTML = `<div class="sv-table-wrap"><table class="sv-table">
+      <thead><tr>
+        <th>Code</th><th>Discount</th>
+        <th class="sv-tnum">Used</th><th>Status</th><th>Actions</th>
       </tr></thead>
-      <tbody>${{coupons.map(c => `<tr style="border-bottom:1px solid #222;">
-        <td style="padding:8px;"><b>${{c.code}}</b></td>
-        <td style="padding:8px;">${{c.discount_percent ? c.discount_percent+'%' : (c.discount_amount ? '-'+c.discount_amount : 'None')}}</td>
-        <td style="padding:8px;">${{c.used_count}}/${{c.max_uses || '∞'}}</td>
-        <td style="padding:8px;">${{c.enabled ? '✅' : '❌'}}</td>
-        <td style="padding:8px;display:flex;gap:6px;">
-          <button class="secondary" style="padding:4px 10px;font-size:12px;" onclick="editCoupon(${{JSON.stringify(c)}})">Edit</button>
-          <button class="secondary" style="padding:4px 10px;font-size:12px;color:#f66;" onclick="deleteCoupon('${{c.id}}')">Del</button>
-        </td>
-      </tr>`).join('')}}</tbody></table>`;
-  }} catch(e) {{ document.getElementById("coupons-list").innerHTML = `<p class="muted">${{e.message}}</p>`; }}
+      <tbody>${{coupons.map(c => `<tr>
+        <td><strong>${{c.code}}</strong></td>
+        <td>${{c.discount_percent ? c.discount_percent + '%' : (c.discount_amount ? '-' + c.discount_amount : 'None')}}</td>
+        <td class="sv-tnum">${{c.used_count}}/${{c.max_uses || '∞'}}</td>
+        <td><span class="sv-pill ${{c.enabled ? 'sv-pill-success' : 'sv-pill-neutral'}}">${{c.enabled ? 'Enabled' : 'Disabled'}}</span></td>
+        <td><div class="sv-inline-actions">
+          <button class="sv-btn sv-btn-secondary sv-btn-sm" onclick='editCoupon(${{JSON.stringify(c)}})'>Edit</button>
+          <button class="sv-btn sv-btn-danger sv-btn-sm" onclick="deleteCoupon('${{c.id}}')">Delete</button>
+        </div></td>
+      </tr>`).join('')}}</tbody></table></div>`;
+  }} catch(e) {{ document.getElementById("coupons-list").innerHTML = `<p class="sv-muted">${{e.message}}</p>`; }}
 }}
 function editCoupon(c) {{
   editingCouponId = c.id;
@@ -433,16 +481,16 @@ function editCoupon(c) {{
   f.elements.max_uses.value = c.max_uses || "";
   f.elements.expires_at.value = c.expires_at ? c.expires_at.slice(0,16) : "";
   f.elements.enabled.checked = c.enabled;
-  document.getElementById("coupon-form-wrap").style.display = "block";
+  document.getElementById("coupon-form-wrap").classList.remove("sv-hidden");
 }}
 document.getElementById("btn-add-coupon").addEventListener("click", () => {{
   editingCouponId = null;
   document.getElementById("coupon-form").reset();
   document.getElementById("coupon-form").elements.enabled.checked = true;
-  document.getElementById("coupon-form-wrap").style.display = "block";
+  document.getElementById("coupon-form-wrap").classList.remove("sv-hidden");
 }});
 document.getElementById("btn-cancel-coupon").addEventListener("click", () => {{
-  document.getElementById("coupon-form-wrap").style.display = "none";
+  document.getElementById("coupon-form-wrap").classList.add("sv-hidden");
 }});
 document.getElementById("coupon-form").addEventListener("submit", async (e) => {{
   e.preventDefault();
@@ -465,7 +513,7 @@ document.getElementById("coupon-form").addEventListener("submit", async (e) => {
       await fetchJson(`/api/store/{store_id}/coupons/`, {{ method:"POST", headers:{{"Content-Type":"application/json"}}, body:JSON.stringify(payload) }});
     }}
     setMessage("coupon-form-msg", "Saved.");
-    document.getElementById("coupon-form-wrap").style.display = "none";
+    document.getElementById("coupon-form-wrap").classList.add("sv-hidden");
     loadCoupons();
   }} catch(err) {{ setMessage("coupon-form-msg", err.message || "Error"); }}
 }});
@@ -484,26 +532,26 @@ async function loadOrders() {{
   try {{
     const orders = await fetchJson(url);
     const el = document.getElementById("orders-list");
-    if (!orders.length) {{ el.innerHTML = "<p class=\'muted\'>No orders found.</p>"; return; }}
+    if (!orders.length) {{ el.innerHTML = '<div class="sv-empty"><span class="sv-empty-icon"><i class="ti ti-shopping-cart-off"></i></span><h3>No orders found</h3><p>Orders created through your chat channels will appear here.</p></div>'; return; }}
     const statuses = ['PENDING','CONFIRMED','PROCESSING','SHIPPED','DELIVERED','CANCELLED'];
-    el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-      <thead><tr style="text-align:left;border-bottom:1px solid #333;">
-        <th style="padding:8px;">Order ID</th><th style="padding:8px;">Product</th><th style="padding:8px;">Customer</th>
-        <th style="padding:8px;">Total</th><th style="padding:8px;">Date</th><th style="padding:8px;">Status</th>
+    el.innerHTML = `<div class="sv-table-wrap"><table class="sv-table">
+      <thead><tr>
+        <th>Order ID</th><th>Product</th><th>Customer</th>
+        <th class="sv-tnum">Total</th><th>Date</th><th>Status</th>
       </tr></thead>
-      <tbody>${{orders.map(o => `<tr style="border-bottom:1px solid #222;">
-        <td style="padding:8px;"><code style="font-size:11px;">${{o.order_number}}</code></td>
-        <td style="padding:8px;">${{o.product_name}} x${{o.quantity}}</td>
-        <td style="padding:8px;">${{o.customer_name}}<br><small class="muted">${{o.customer_phone}}</small></td>
-        <td style="padding:8px;">${{o.total_amount}}</td>
-        <td style="padding:8px;">${{o.order_date ? o.order_date.slice(0,16).replace('T',' ') : ''}}</td>
-        <td style="padding:8px;">
-          <select onchange="updateOrderStatus('${{o.id}}', this.value)" style="font-size:12px;padding:3px;">
+      <tbody>${{orders.map(o => `<tr>
+        <td><code class="sv-code">${{o.order_number}}</code></td>
+        <td>${{o.product_name}} x${{o.quantity}}</td>
+        <td>${{o.customer_name}}<br><small class="sv-muted">${{o.customer_phone}}</small></td>
+        <td class="sv-tnum">${{o.total_amount}}</td>
+        <td>${{o.order_date ? o.order_date.slice(0,16).replace('T',' ') : ''}}</td>
+        <td>
+          <select onchange="updateOrderStatus('${{o.id}}', this.value)">
             ${{statuses.map(s => `<option value="${{s}}" ${{s===o.status?'selected':''}}>${{s}}</option>`).join('')}}
           </select>
         </td>
-      </tr>`).join('')}}</tbody></table>`;
-  }} catch(e) {{ document.getElementById("orders-list").innerHTML = `<p class="muted">${{e.message}}</p>`; }}
+      </tr>`).join('')}}</tbody></table></div>`;
+  }} catch(e) {{ document.getElementById("orders-list").innerHTML = `<p class="sv-muted">${{e.message}}</p>`; }}
 }}
 async function updateOrderStatus(id, newStatus) {{
   try {{
@@ -519,33 +567,33 @@ async function loadConnections() {{
         const fbRes = await fetchJson(`/api/meta/connected-pages/{store_id}`);
         const fbList = document.getElementById("facebook-connections-list");
         if (fbRes.pages && fbRes.pages.length) {{
-            fbList.innerHTML = fbRes.pages.map(p => `<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;"><span style="flex:1;">📄 ${{p.page_name}}</span><button class="secondary" style="padding:4px 8px;font-size:12px;color:#f66;" onclick="disconnectFacebook('${{p.page_id}}')">🗑️ Disconnect</button></div>`).join("");
+            fbList.innerHTML = `<div class="sv-list">${{fbRes.pages.map(p => `<div class="sv-list-item"><div class="sv-list-item-main"><p><strong>${{p.page_name}}</strong></p><p class="sv-muted">Messenger page</p></div><div class="sv-list-item-actions"><button class="sv-btn sv-btn-danger sv-btn-sm" onclick="disconnectFacebook('${{p.page_id}}')">Disconnect</button></div></div>`).join("")}}</div>`;
         }} else {{
-            fbList.innerHTML = `<p class="muted small">No pages connected.</p>`;
+            fbList.innerHTML = `<p class="sv-muted">No pages connected.</p>`;
         }}
         
         const igRes = await fetchJson(`/api/meta/connected-instagram/{store_id}`);
         const igList = document.getElementById("instagram-connections-list");
         if (igRes.accounts && igRes.accounts.length) {{
-            igList.innerHTML = igRes.accounts.map(p => `<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;"><span style="flex:1;">📸 ${{p.ig_username}}</span><button class="secondary" style="padding:4px 8px;font-size:12px;color:#f66;" onclick="disconnectInstagram('${{p.ig_user_id}}')">🗑️ Disconnect</button></div>`).join("");
+            igList.innerHTML = `<div class="sv-list">${{igRes.accounts.map(p => `<div class="sv-list-item"><div class="sv-list-item-main"><p><strong>${{p.ig_username}}</strong></p><p class="sv-muted">Instagram business account</p></div><div class="sv-list-item-actions"><button class="sv-btn sv-btn-danger sv-btn-sm" onclick="disconnectInstagram('${{p.ig_user_id}}')">Disconnect</button></div></div>`).join("")}}</div>`;
         }} else {{
-            igList.innerHTML = `<p class="muted small">No Instagram accounts connected.</p>`;
+            igList.innerHTML = `<p class="sv-muted">No Instagram accounts connected.</p>`;
         }}
         
         const waRes = await fetchJson(`/api/meta/connected-whatsapp/{store_id}`);
         const waList = document.getElementById("whatsapp-connections-list");
         if (waRes.accounts && waRes.accounts.length) {{
-            waList.innerHTML = waRes.accounts.map(p => `<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;"><span style="flex:1;">💬 ${{p.name}} (${{p.phone_number_id}})</span><button class="secondary" style="padding:4px 8px;font-size:12px;color:#f66;" onclick="disconnectWhatsApp('${{p.phone_number_id}}')">🗑️ Disconnect</button></div>`).join("");
+            waList.innerHTML = `<div class="sv-list">${{waRes.accounts.map(p => `<div class="sv-list-item"><div class="sv-list-item-main"><p><strong>${{p.name}}</strong></p><p class="sv-muted">${{p.phone_number_id}}</p></div><div class="sv-list-item-actions"><button class="sv-btn sv-btn-danger sv-btn-sm" onclick="disconnectWhatsApp('${{p.phone_number_id}}')">Disconnect</button></div></div>`).join("")}}</div>`;
         }} else {{
-            waList.innerHTML = `<p class="muted small">No WhatsApp accounts connected.</p>`;
+            waList.innerHTML = `<p class="sv-muted">No WhatsApp accounts connected.</p>`;
         }}
 
         const tgRes = await fetchJson(`/api/setup/telegram/{store_id}`);
         const tgList = document.getElementById("telegram-connections-list");
         if (tgRes.connections && tgRes.connections.length) {{
-            tgList.innerHTML = tgRes.connections.map(p => `<div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;"><span style="flex:1;">🤖 ${{p.bot_username}}</span><button class="secondary" style="padding:4px 8px;font-size:12px;color:#f66;" onclick="disconnectTelegram('${{p.id}}')">🗑️ Disconnect</button></div>`).join("");
+            tgList.innerHTML = `<div class="sv-list">${{tgRes.connections.map(p => `<div class="sv-list-item"><div class="sv-list-item-main"><p><strong>${{p.bot_username}}</strong></p><p class="sv-muted">Telegram bot</p></div><div class="sv-list-item-actions"><button class="sv-btn sv-btn-danger sv-btn-sm" onclick="disconnectTelegram('${{p.id}}')">Disconnect</button></div></div>`).join("")}}</div>`;
         }} else {{
-            tgList.innerHTML = `<p class="muted small">No Telegram bots connected.</p>`;
+            tgList.innerHTML = `<p class="sv-muted">No Telegram bots connected.</p>`;
         }}
     }} catch(e) {{
         console.error("Error loading connections", e);
@@ -733,13 +781,15 @@ document.getElementById("btn-connect-whatsapp")?.addEventListener("click", async
 @router.get("/connections", response_class=HTMLResponse)
 async def connections():
     body = """
-<h1>Connections</h1>
-<p class="muted">Open a store from the dashboard, then manage its platform connections here.</p>
-<div class="actions">
-  <a class="button" href="/dashboard">Go to dashboard</a>
-  <button type="button" class="secondary" onclick="logout()">Logout</button>
-</div>
-<p class="small muted">This page will jump to the last selected store if one is saved.</p>
+<section class="sv-card">
+  <div class="sv-card-body sv-empty">
+    <span class="sv-empty-icon"><i class="ti ti-plug-connected"></i></span>
+    <h3>Connections follow your current store</h3>
+    <p>Open a store from the dashboard, then manage its platform connections there. If you recently opened one, this page will redirect you automatically.</p>
+    <a class="sv-btn sv-btn-primary" href="/dashboard">Go to dashboard</a>
+    <p class="sv-muted">This page will jump to the last selected store if one is saved.</p>
+  </div>
+</section>
 """
     script = """
 <script>
@@ -754,11 +804,13 @@ if (storeId) { window.location.href = `/stores/${storeId}`; }
 @router.get("/orders", response_class=HTMLResponse)
 async def orders():
     body = """
-<h1>Orders</h1>
-<p class="muted">Placeholder for now. The order flow can be added later in the separate frontend.</p>
-<div class="actions">
-  <a class="button" href="/dashboard">Back to dashboard</a>
-  <button type="button" class="secondary" onclick="logout()">Logout</button>
-</div>
+<section class="sv-card">
+  <div class="sv-card-body sv-empty">
+    <span class="sv-empty-icon"><i class="ti ti-shopping-cart"></i></span>
+    <h3>Orders page is still a placeholder</h3>
+    <p>The live order management experience currently lives inside each store workspace.</p>
+    <a class="sv-btn sv-btn-primary" href="/dashboard">Back to dashboard</a>
+  </div>
+</section>
 """
     return render_page("Orders", body)

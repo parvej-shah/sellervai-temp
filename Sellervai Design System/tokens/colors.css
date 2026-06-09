@@ -1,0 +1,80 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Sellervai — Color tokens  (light = default, dark = opt-in)
+   Brand identity = INDIGO (the workhorse) + PURPLE (the flourish).
+   All custom props keep the --sv-* prefix to match the app codebase.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand ─────────────────────────────────────────────────────── */
+  --sv-indigo:        #5b5bf0;   /* solid action color — buttons, links, focus */
+  --sv-purple:        #a855f7;   /* flourish — gradient end, AI accents, badges */
+  --sv-accent:        var(--sv-indigo);
+  --sv-accent-hover:  #4848d6;
+  --sv-accent-active: #3a3ac2;
+  --sv-accent-subtle: rgba(124, 92, 246, 0.10);   /* tint for soft fills / hover */
+  --sv-on-accent:     #ffffff;                     /* text/icon on a solid indigo fill */
+  --sv-gradient:      linear-gradient(135deg, #5b5bf0, #a855f7); /* @kind color */
+
+  /* ── Neutrals ramp (light) ─────────────────────────────────────── */
+  --sv-bg:            #f6f7fb;   /* page background */
+  --sv-surface:       #ffffff;   /* card / panel surface */
+  --sv-surface-2:     #eef0f7;   /* raised / inset / hovered row */
+  --sv-border:        #e4e6f0;   /* hairline borders */
+  --sv-border-strong: #d2d6e6;   /* emphasized borders, inputs */
+  --sv-text:          #181a2c;   /* primary text */
+  --sv-text-muted:    #5b6184;   /* secondary text, captions */
+  --sv-text-subtle:   #8a90ab;   /* tertiary text, placeholders, disabled */
+
+  /* ── Semantic status (light) — distinct from indigo/purple ─────── */
+  --sv-success:        #16a34a;  --sv-success-subtle: rgba(22, 163, 74, 0.10);
+  --sv-warning:        #d97706;  --sv-warning-subtle: rgba(217, 119, 6, 0.12);
+  --sv-danger:         #dc2626;  --sv-danger-subtle:  rgba(220, 38, 38, 0.10);
+  --sv-info:           #0284c7;  --sv-info-subtle:    rgba(2, 132, 199, 0.10);
+
+  /* ── Platform brand colors (connection chips only) ─────────────── */
+  --sv-whatsapp:   #25d366;
+  --sv-messenger:  #0084ff;
+  --sv-instagram:  #e1306c;
+  --sv-telegram:   #229ed9;
+
+  /* Map Pico's primitives onto our tokens (light) */
+  --pico-primary:               var(--sv-accent);
+  --pico-primary-hover:         var(--sv-accent-hover);
+  --pico-primary-focus:         var(--sv-accent-subtle);
+  --pico-primary-inverse:       var(--sv-on-accent);
+}
+
+[data-theme="dark"] {
+  /* ── Brand (dark — lifted for contrast on dark surfaces) ───────── */
+  --sv-indigo:        #7c7cff;
+  --sv-purple:        #c084fc;
+  --sv-accent:        var(--sv-indigo);
+  --sv-accent-hover:  #9b9bff;
+  --sv-accent-active: #b3b3ff;
+  --sv-accent-subtle: rgba(124, 92, 246, 0.16);
+  --sv-on-accent:     #0f1020;
+  --sv-gradient:      linear-gradient(135deg, #7c7cff, #c084fc); /* @kind color */
+
+  /* ── Neutrals ramp (dark) — cards lift clearly off the page ────── */
+  --sv-bg:            #0f1020;
+  --sv-surface:       #1a1a2e;
+  --sv-surface-2:     #232544;
+  --sv-border:        rgba(255, 255, 255, 0.09);
+  --sv-border-strong: rgba(255, 255, 255, 0.16);
+  --sv-text:          #eef0fb;
+  --sv-text-muted:    rgba(255, 255, 255, 0.60);
+  --sv-text-subtle:   rgba(255, 255, 255, 0.40);
+
+  /* ── Semantic status (dark — brighter, still distinct) ─────────── */
+  --sv-success:        #34d399;  --sv-success-subtle: rgba(52, 211, 153, 0.16);
+  --sv-warning:        #fbbf24;  --sv-warning-subtle: rgba(251, 191, 36, 0.16);
+  --sv-danger:         #f87171;  --sv-danger-subtle:  rgba(248, 113, 113, 0.16);
+  --sv-info:           #38bdf8;  --sv-info-subtle:    rgba(56, 189, 248, 0.16);
+
+  /* Platform colors stay identical — they are brand-fixed, theme-independent */
+
+  --pico-primary:               var(--sv-accent);
+  --pico-primary-hover:         var(--sv-accent-hover);
+  --pico-primary-focus:         var(--sv-accent-subtle);
+  --pico-primary-inverse:       var(--sv-on-accent);
+}

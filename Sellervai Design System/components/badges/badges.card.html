@@ -1,0 +1,31 @@
+<!-- @dsCard group="Components" viewport="700x180" name="Badges & Platform chips" subtitle="Semantic status pills + brand-tinted connection chips" -->
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
+  <style>
+    body { margin: 0; padding: 24px; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .row:last-child { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <span class="sv-pill sv-pill-success"><span class="sv-dot is-live"></span>AI online</span>
+    <span class="sv-pill sv-pill-success"><i class="ti ti-circle-check"></i>Paid</span>
+    <span class="sv-pill sv-pill-warning"><i class="ti ti-alert-triangle"></i>Pending</span>
+    <span class="sv-pill sv-pill-danger"><i class="ti ti-alert-circle"></i>Webhook failed</span>
+    <span class="sv-pill sv-pill-info"><i class="ti ti-info-circle"></i>Syncing</span>
+    <span class="sv-pill sv-pill-neutral"><span class="sv-dot"></span>Draft</span>
+  </div>
+  <div class="row">
+    <span class="sv-chip sv-chip-whatsapp"><i class="sv-chip-icon ti ti-brand-whatsapp"></i>WhatsApp</span>
+    <span class="sv-chip sv-chip-messenger"><i class="sv-chip-icon ti ti-brand-messenger"></i>Messenger</span>
+    <span class="sv-chip sv-chip-instagram"><i class="sv-chip-icon ti ti-brand-instagram"></i>Instagram</span>
+    <span class="sv-chip sv-chip-telegram"><i class="sv-chip-icon ti ti-brand-telegram"></i>Telegram</span>
+  </div>
+</body>
+</html>

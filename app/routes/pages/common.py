@@ -1,30 +1,6 @@
 from fastapi.responses import HTMLResponse
 
-
-PAGE_STYLE = """
-<style>
-  :root { color-scheme: light; }
-  body { margin: 0; padding: 24px; font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff; }
-  main { max-width: 760px; margin: 0 auto; text-align: center; }
-  section { margin: 24px auto; padding: 16px; border: 1px solid #ddd; border-radius: 8px; text-align: left; }
-  form { display: grid; gap: 12px; }
-  label { display: grid; gap: 6px; }
-  input, textarea, select, button { font: inherit; padding: 8px 10px; }
-  input, textarea, select { width: 100%; box-sizing: border-box; }
-  textarea { min-height: 92px; resize: vertical; }
-  button, .button { display: inline-block; width: auto; text-decoration: none; border: 1px solid #111; background: #111; color: #fff; cursor: pointer; }
-  .button.secondary, button.secondary { background: #fff; color: #111; }
-  .copy-button { display: inline-flex; align-items: center; gap: 6px; }
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .grid { display: grid; gap: 16px; }
-  .store-list { display: grid; gap: 12px; }
-  .store-card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; }
-  .muted { color: #666; }
-  .small { font-size: 0.92rem; }
-  .error-banner { display: none; margin: 0 auto 16px; padding: 12px 14px; border: 1px solid #c62828; border-radius: 8px; background: #fdecec; color: #8b1e1e; text-align: left; }
-  .error-banner.visible { display: block; }
-</style>
-"""
+from app.lib.templates import render_template
 
 
 COMMON_SCRIPT = """
@@ -39,34 +15,42 @@ function authHeaders(){const t=getToken();return t?{Authorization:`Bearer ${t}`}
 function clearAuth(){localStorage.removeItem(BIZZZ_TOKEN_KEY);localStorage.removeItem(BIZZZ_STORE_KEY)}
 function logout(){clearAuth();window.location.href="/login"}
 function setMessage(id,text){const e=document.getElementById(id);if(e){e.textContent=text}}
-function showError(text){const e=document.getElementById("page-error");if(e){e.textContent=text;e.classList.add("visible")}}
-function clearError(){const e=document.getElementById("page-error");if(e){e.textContent="";e.classList.remove("visible")}}
+function showError(text){const wrap=document.getElementById("page-error");const msg=document.getElementById("page-error-text");if(wrap&&msg){msg.textContent=text;wrap.classList.remove("sv-hidden")}}
+function clearError(){const wrap=document.getElementById("page-error");const msg=document.getElementById("page-error-text");if(wrap&&msg){msg.textContent="";wrap.classList.add("sv-hidden")}}
 function requireTokenOrRedirect(){if(!getToken()){window.location.href="/";return false}return true}
 async function ensureSessionOrRedirect(){const token=getToken();if(!token){return null}try{return await fetchJson("/api/auth/session")}catch(error){clearAuth();if(error && error.status === 401){window.location.href="/login";return null}showError(error.message||"Session check failed");return null}}
 function parseJsonInput(value,fallback){const t=String(value||"").trim();if(!t){return fallback}try{return JSON.parse(t)}catch{return fallback}}
 async function copyText(text){const value=String(text||"");if(!value){return false}if(navigator.clipboard && window.isSecureContext){await navigator.clipboard.writeText(value);return true}const input=document.createElement("textarea");input.value=value;input.setAttribute("readonly","");input.style.position="absolute";input.style.left="-9999px";document.body.appendChild(input);input.select();document.execCommand("copy");document.body.removeChild(input);return true}
 async function fetchJson(url,options={}){const response=await fetch(url,{...options,headers:{...(options.headers||{}),...authHeaders()}});const rawText=await response.text();let data={};if(rawText){try{data=JSON.parse(rawText)}catch{data={detail:rawText}}}if(!response.ok){if(response.status===401){clearAuth();window.location.href="/login";}const err=new Error(data.detail||response.statusText||`HTTP ${response.status}`);err.status=response.status;err.data=data;throw err}return data}
 async function fetchStores(){return fetchJson("/api/store/")}
-function renderStoreCards(containerId,stores){const c=document.getElementById(containerId);if(!c)return;c.innerHTML="";if(!stores.length){c.innerHTML='<p class="muted">No stores yet.</p>';return}for(const store of stores){const card=document.createElement("div");card.className="store-card";const title=document.createElement("h3");title.textContent=store.name;card.appendChild(title);const description=document.createElement("p");description.className="muted small";description.textContent=store.description||"No description yet.";card.appendChild(description);const actions=document.createElement("div");actions.className="actions";const openLink=document.createElement("a");openLink.className="button";openLink.href=`/stores/${store.id}`;openLink.textContent="Open store";openLink.addEventListener("click",()=>setStoreId(store.id));actions.appendChild(openLink);card.appendChild(actions);c.appendChild(card)}}
+function renderStoreCards(containerId,stores){const c=document.getElementById(containerId);if(!c)return;c.innerHTML="";if(!stores.length){c.innerHTML='<div class="sv-empty"><span class="sv-empty-icon"><i class="ti ti-building-store"></i></span><h3>No stores yet</h3><p>Create your first store to start connecting channels and selling with AI.</p></div>';return}for(const store of stores){const card=document.createElement("article");card.className="sv-list-item";const main=document.createElement("div");main.className="sv-list-item-main";const title=document.createElement("p");title.innerHTML=`<strong>${store.name}</strong>`;main.appendChild(title);const description=document.createElement("p");description.className="sv-muted";description.textContent=store.description||"No description yet.";main.appendChild(description);const actions=document.createElement("div");actions.className="sv-list-item-actions";const openLink=document.createElement("a");openLink.className="sv-btn sv-btn-primary sv-btn-sm";openLink.href=`/stores/${store.id}`;openLink.innerHTML='<i class="ti ti-arrow-right"></i> Open store';openLink.addEventListener("click",()=>setStoreId(store.id));actions.appendChild(openLink);card.appendChild(main);card.appendChild(actions);c.appendChild(card)}}
 </script>
 """
 
 
 def render_page(title: str, body: str, script: str = "") -> HTMLResponse:
-    return HTMLResponse(f"""<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{title}</title>
-  {PAGE_STYLE}
-</head>
-<body>
-  <main>
-    <div id="page-error" class="error-banner"></div>
-{body}
-  </main>
-  {COMMON_SCRIPT}
-  {script}
-</body>
-</html>""")
+    nav_html = """
+  <li><a href="/dashboard" class="sv-btn sv-btn-ghost">Dashboard</a></li>
+  <li><button type="button" class="sv-btn sv-btn-secondary sv-btn-sm" onclick="logout()">Logout</button></li>
+"""
+    body_html = f"""
+<div class="sv-page">
+  <div id="page-error" class="sv-alert sv-alert-danger sv-hidden">
+    <i class="ti ti-alert-circle"></i>
+    <div>
+      <p class="sv-alert-title">Something went wrong</p>
+      <p id="page-error-text"></p>
+    </div>
+  </div>
+  {body}
+</div>
+"""
+    full_script = COMMON_SCRIPT + script
+    return render_template(
+        "app_page.html",
+        page_title=title,
+        body_html=body_html,
+        script_html=full_script,
+        meta_text=f"{title} — Sellervai application page.",
+        nav_html=nav_html,
+    )

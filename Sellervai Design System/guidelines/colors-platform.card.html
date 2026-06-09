@@ -1,0 +1,23 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Platform colors" subtitle="Fixed brand hues for connection chips — never themed" -->
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
+  <style>
+    body { margin: 0; padding: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .sw { border-radius: var(--sv-radius-sm); border: 1px solid var(--sv-border); overflow: clip; box-shadow: var(--sv-shadow-sm); }
+    .chip { height: 56px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:26px; }
+    .meta { padding: 8px 10px; background: var(--sv-surface); }
+    .name { font-size: 12px; font-weight: 600; }
+    .val { font-size: 10px; color: var(--sv-text-muted); font-family: var(--sv-font-mono); }
+  </style>
+</head>
+<body>
+  <div class="sw"><div class="chip" style="background:var(--sv-whatsapp)"><i class="ti ti-brand-whatsapp"></i></div><div class="meta"><div class="name">WhatsApp</div><div class="val">#25d366</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--sv-messenger)"><i class="ti ti-brand-messenger"></i></div><div class="meta"><div class="name">Messenger</div><div class="val">#0084ff</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--sv-instagram)"><i class="ti ti-brand-instagram"></i></div><div class="meta"><div class="name">Instagram</div><div class="val">#e1306c</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--sv-telegram)"><i class="ti ti-brand-telegram"></i></div><div class="meta"><div class="name">Telegram</div><div class="val">#229ed9</div></div></div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!-- @dsCard group="Spacing" viewport="700x150" name="Radius" subtitle="sm 8 · default 12 · lg 18 · pill" -->
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    body { margin: 0; padding: 24px; font-family: var(--sv-font-sans); display: flex; gap: 18px; align-items: center; }
+    .b { width: 84px; height: 64px; background: var(--sv-surface); border: 1px solid var(--sv-border-strong); box-shadow: var(--sv-shadow-sm); }
+    .u { text-align: center; }
+    .l { font-size: 10px; color: var(--sv-text-muted); margin-top: 8px; font-family: var(--sv-font-mono); }
+  </style>
+</head>
+<body>
+  <div class="u"><div class="b" style="border-radius:var(--sv-radius-sm)"></div><div class="l">--sv-radius-sm · 8</div></div>
+  <div class="u"><div class="b" style="border-radius:var(--sv-radius)"></div><div class="l">--sv-radius · 12</div></div>
+  <div class="u"><div class="b" style="border-radius:var(--sv-radius-lg)"></div><div class="l">--sv-radius-lg · 18</div></div>
+  <div class="u"><div class="b" style="border-radius:var(--sv-radius-pill);width:120px"></div><div class="l">--sv-radius-pill</div></div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!-- @dsCard group="Components" viewport="700x340" name="Alerts & Empty state" subtitle="Semantic inline alerts + zero-data state" -->
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
+  <style>
+    body { margin: 0; padding: 24px; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; align-items: start; }
+    .alerts { display: grid; gap: 10px; }
+  </style>
+</head>
+<body>
+  <div class="alerts">
+    <div class="sv-alert sv-alert-success"><i class="ti ti-circle-check"></i><div><p class="sv-alert-title">Order paid</p><p>Payment confirmed via bKash.</p></div></div>
+    <div class="sv-alert sv-alert-warning"><i class="ti ti-alert-triangle"></i><div><p class="sv-alert-title">Token expiring</p><p>Reconnect WhatsApp within 3 days.</p></div></div>
+    <div class="sv-alert sv-alert-danger"><i class="ti ti-alert-circle"></i><div><p class="sv-alert-title">Webhook failed</p><p>Meta returned 403 — verify token.</p></div></div>
+    <div class="sv-alert sv-alert-info"><i class="ti ti-info-circle"></i><div><p>Knowledge base re-indexed.</p></div></div>
+  </div>
+  <div class="sv-card">
+    <div class="sv-empty">
+      <span class="sv-empty-icon"><i class="ti ti-messages-off"></i></span>
+      <h3>No conversations yet</h3>
+      <p>Once you connect a platform, customer chats land here.</p>
+      <button class="sv-btn sv-btn-primary"><i class="ti ti-plug-connected"></i>Connect a channel</button>
+    </div>
+  </div>
+</body>
+</html>

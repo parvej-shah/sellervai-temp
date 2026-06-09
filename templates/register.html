@@ -6,59 +6,88 @@
 <%def name="extra_head()">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </%def>
+<%def name="body_class()">sv-auth-page</%def>
 
 <%def name="nav_items()">
-  <li><a href="/login">Sign in</a></li>
+  <li><a href="/login" class="sv-btn sv-btn-ghost">Sign in</a></li>
 </%def>
 
 <div class="sv-auth-wrap">
-  <div class="sv-auth-card">
+  <div class="sv-auth-card sv-auth-card--wide">
+    <div class="sv-auth-shell">
+      <aside class="sv-auth-panel sv-auth-panel--visual">
+        <div class="sv-auth-hero">
+          <span class="sv-auth-kicker">You can easily</span>
+          <h2>Speed up your work with our web app</h2>
+          <p>Create your account, connect your channels, and start automating customer conversations in minutes.</p>
 
-    <div class="sv-auth-header">
-      <i class="ti ti-rocket sv-auth-logo"></i>
-      <h1>Get started</h1>
-      <p>Create your free Sellervai account</p>
+          <div class="sv-auth-partners" aria-label="Platforms supported">
+            <span><i class="ti ti-brand-whatsapp"></i> WhatsApp</span>
+            <span><i class="ti ti-brand-instagram"></i> Instagram</span>
+            <span><i class="ti ti-brand-messenger"></i> Messenger</span>
+            <span><i class="ti ti-brand-telegram"></i> Telegram</span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="sv-auth-panel sv-auth-panel--form">
+        <div class="sv-auth-form-wrap">
+          <div class="sv-auth-toplink">
+            <a href="/" class="sv-auth-backlink"><i class="ti ti-arrow-left"></i> Back to home</a>
+          </div>
+
+          <div class="sv-auth-header sv-auth-header--plain">
+            <h1>Get Started Now</h1>
+            <p>Create your account to continue.</p>
+          </div>
+
+          <form id="register-form" class="sv-form">
+            <div class="sv-auth-form-grid">
+              <label class="sv-field sv-span-2">
+                <span class="sv-field-label">Name</span>
+                <input id="reg-name" name="name" type="text" placeholder="Your name" required autocomplete="name" />
+              </label>
+              <label class="sv-field sv-span-2">
+                <span class="sv-field-label">Email address</span>
+                <input id="reg-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email" />
+              </label>
+              <label class="sv-field sv-span-2">
+                <span class="sv-field-label">Password</span>
+                <input id="reg-password" name="password" type="password" placeholder="Min 8 characters" required
+                  autocomplete="new-password" />
+              </label>
+            </div>
+            <div class="sv-auth-options sv-auth-options--single">
+              <label class="sv-auth-check sv-auth-check--terms">
+                <input type="checkbox" id="terms-register" required>
+                <span>I agree to the Terms & Privacy</span>
+              </label>
+            </div>
+            <p id="reg-error" class="sv-form-error" hidden></p>
+            <button type="submit" id="reg-btn" class="sv-btn sv-btn-primary sv-btn-lg">
+              Sign up
+            </button>
+          </form>
+
+          <p class="sv-auth-footer">
+            Have an account? <a href="/login" class="sv-auth-link">Sign in</a>
+          </p>
+
+          <div class="sv-divider"><span>Or</span></div>
+
+          <div class="sv-google-btn-wrap">
+            <div class="sv-auth-social-grid">
+              <div id="g_id_onload" data-client_id="${google_client_id}" data-callback="handleGoogleCredential"
+                data-auto_prompt="false">
+              </div>
+              <div class="g_id_signin sv-google-native" data-type="standard" data-size="large" data-theme="outline"
+                data-text="signup_with" data-shape="rectangular" data-logo_alignment="left" data-width="356">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-
-    <div class="sv-google-btn-wrap">
-      <div id="g_id_onload" data-client_id="${google_client_id}" data-callback="handleGoogleCredential"
-        data-auto_prompt="false">
-      </div>
-      <div class="g_id_signin" data-type="standard" data-size="large" data-theme="filled_black" data-text="signup_with"
-        data-shape="rectangular" data-logo_alignment="left" data-width="100%">
-      </div>
-    </div>
-
-    <div class="sv-divider"><span>or register with email</span></div>
-
-    <form id="register-form" class="sv-form">
-      <label>
-        Name
-        <input id="reg-name" name="name" type="text" placeholder="Your name" required autocomplete="name" />
-      </label>
-      <label>
-        Email
-        <input id="reg-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email" />
-      </label>
-      <label>
-        Phone
-        <input id="reg-phone" name="phone_number" type="tel" placeholder="+880..." autocomplete="tel" />
-      </label>
-      <label>
-        Password
-        <input id="reg-password" name="password" type="password" placeholder="Min 8 characters" required
-          autocomplete="new-password" />
-      </label>
-      <p id="reg-error" class="sv-form-error" hidden></p>
-      <button type="submit" id="reg-btn">
-        <i class="ti ti-user-plus"></i> Create account
-      </button>
-    </form>
-
-    <p class="sv-auth-footer">
-      Already have an account? <a href="/login">Sign in</a>
-    </p>
-
   </div>
 </div>
 
@@ -95,7 +124,6 @@
       const payload = {
         name: document.getElementById("reg-name").value,
         email: document.getElementById("reg-email").value,
-        phone_number: document.getElementById("reg-phone").value || null,
         password: document.getElementById("reg-password").value,
       };
 

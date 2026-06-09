@@ -9,191 +9,136 @@ router = APIRouter()
 async def post_management(store_id: str):
     print(f"Rendering post management page for store {store_id} in {settings.ENVIRONMENT} environment")
     body = f"""
-<style>
-  /* Basic layout styles */
-  .actions {{ margin-bottom: 20px; }}
-  
-  /* Modal Overlay Background */
-  .modal {{
-    display: none; 
-    position: fixed; 
-    z-index: 1000; 
-    left: 0;
-    top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: auto; 
-    background-color: rgba(0, 0, 0, 0.5); 
-  }}
-
-  /* Modal Body Box */
-  .modal-content {{
-    background-color: #fefefe;
-    margin: 10% auto; 
-    padding: 20px;
-    border: 1px solid #888;
-    width: 60%; 
-    max-width: 600px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    position: relative;
-  }}
-
-  /* Modal Header Design */
-  .modal-header {{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-  }}
-  
-  .modal-header h3 {{
-    margin: 0;
-  }}
-
-  .close-btn {{
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #aaa;
-  }}
-  
-  .close-btn:hover {{
-    color: #000;
-  }}
-</style>
-
-<h1>Post Management & Autopilot</h1>
-<p>Manage your social media posts and enable automatic comment responses.</p>
-
-<div class="actions">
-  <a href="/stores/{store_id}">Back to store</a> | 
-  <a href="/dashboard">Dashboard</a> | 
-  <button type="button" onclick="logout()">Logout</button>
-</div>
-
-<hr>
-
-<section>
-  <h2>Autopilot Control</h2>
-  <p>When enabled, the bot will automatically reply to comments on your posts using the post knowledge.</p>
-  <div>
-    <label>
-      <input type="checkbox" id="autopilot-toggle">
-      Enable Autopilot
-    </label>
-    <button type="button" onclick="toggleAutopilot()">Save</button>
-    <span id="autopilot-status"></span>
+<section class="sv-page-header">
+  <div class="sv-page-title">
+    <h1>Post management</h1>
+    <p class="sv-page-lead">Manage your published social posts and control how Sellervai replies to comments automatically.</p>
+  </div>
+  <div class="sv-page-actions">
+    <a href="/stores/{store_id}" class="sv-btn sv-btn-secondary">Back to store</a>
+    <a href="/dashboard" class="sv-btn sv-btn-ghost">Dashboard</a>
   </div>
 </section>
 
-<hr>
-
-<section>
-  <h2>Your Posts</h2>
-  
-  <div>
-    <button type="button" onclick="openCreatePostModal()">✏️ New Post</button>
-    <button type="button" onclick="loadPosts()">Refresh</button>
-  </div>
-  
-  <br>
-  
-  <div>
-    <label>
-      <input type="checkbox" id="select-all-posts" onchange="toggleSelectAll()">
-      Select All
-    </label>
-    <button type="button" id="pause-selected-btn" onclick="bulkPauseSelected()" style="display:none;">⏸ Pause Selected</button>
-    <button type="button" id="resume-selected-btn" onclick="bulkResumeSelected()" style="display:none;">▶ Resume Selected</button>
-  </div>
-  
-  <div id="posts-container">
-    <p>Loading posts...</p>
-  </div>
-</section>
-
-<!-- Post Details / Comments Modal -->
-<div id="post-detail-modal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="modal-title">Post Details</h3>
-      <button type="button" class="close-btn" onclick="closePostDetail()">×</button>
+<section class="sv-grid-auto">
+  <article class="sv-card">
+    <header class="sv-card-header">
+      <h2 class="sv-card-title"><i class="ti ti-robot"></i> Autopilot control</h2>
+    </header>
+    <div class="sv-card-body sv-stack">
+      <p class="sv-muted">When enabled, the bot will automatically reply to comments on your posts using the saved post knowledge.</p>
+      <div class="sv-inline-actions">
+        <label class="sv-choice">
+          <input type="checkbox" id="autopilot-toggle">
+          <span>
+            <strong>Enable autopilot</strong>
+            <p class="sv-muted">Turn automatic comment handling on or off for this store.</p>
+          </span>
+        </label>
+        <button type="button" class="sv-btn sv-btn-primary" onclick="toggleAutopilot()">Save</button>
+        <span id="autopilot-status" class="sv-pill sv-pill-neutral">Checking status...</span>
+      </div>
     </div>
-    <div id="post-detail-content"></div>
+  </article>
+</section>
+
+<section class="sv-card">
+  <header class="sv-card-header">
+    <h2 class="sv-card-title"><i class="ti ti-photo"></i> Your posts</h2>
+    <div class="sv-inline-actions">
+      <button type="button" class="sv-btn sv-btn-primary" onclick="openCreatePostModal()"><i class="ti ti-edit"></i> New post</button>
+      <button type="button" class="sv-btn sv-btn-secondary" onclick="loadPosts()">Refresh</button>
+    </div>
+  </header>
+  <div class="sv-card-body sv-stack">
+    <div class="sv-toolbar">
+      <label class="sv-checkbox-row">
+        <input type="checkbox" id="select-all-posts" onchange="toggleSelectAll()">
+        <span>Select all</span>
+      </label>
+      <button type="button" class="sv-btn sv-btn-secondary sv-hidden" id="pause-selected-btn" onclick="bulkPauseSelected()">Pause selected</button>
+      <button type="button" class="sv-btn sv-btn-secondary sv-hidden" id="resume-selected-btn" onclick="bulkResumeSelected()">Resume selected</button>
+    </div>
+    <div id="posts-container" class="sv-stack">
+      <p class="sv-muted">Loading posts...</p>
+    </div>
+  </div>
+</section>
+
+<div id="post-detail-modal" class="sv-modal">
+  <div class="sv-modal-dialog">
+    <div class="sv-modal-header">
+      <h3 id="modal-title">Post details</h3>
+      <button type="button" class="sv-icon-btn" onclick="closePostDetail()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="post-detail-content" class="sv-modal-body"></div>
   </div>
 </div>
 
-<!-- Create New Post Modal -->
-<div id="create-post-modal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>Create New Post</h3>
-      <button type="button" class="close-btn" onclick="closeCreatePostModal()">×</button>
+<div id="create-post-modal" class="sv-modal">
+  <div class="sv-modal-dialog">
+    <div class="sv-modal-header">
+      <h3>Create new post</h3>
+      <button type="button" class="sv-icon-btn" onclick="closeCreatePostModal()" aria-label="Close"><i class="ti ti-x"></i></button>
     </div>
     
-    <div id="create-post-content">
+    <div id="create-post-content" class="sv-modal-body sv-stack">
       <div id="step1-post-type">
         <p>What type of post would you like to create?</p>
-        <label>
+        <div class="sv-choice-grid">
+        <label class="sv-choice">
           <input type="radio" name="post-type" value="product" onchange="updatePostTypeUI()">
-          <strong>📦 Product Post</strong> (Post about one of your products)
+          <div><strong>Product post</strong><p class="sv-muted">Create a post about one of your products.</p></div>
         </label>
-        <br>
-        <label>
+        <label class="sv-choice">
           <input type="radio" name="post-type" value="content" onchange="updatePostTypeUI()">
-          <strong>💡 Content Post</strong> (Meme, quote, or engagement post)
+          <div><strong>Content post</strong><p class="sv-muted">Create a meme, quote, or engagement post.</p></div>
         </label>
+        </div>
       </div>
       
-      <div id="step2-product" style="display:none;">
+      <div id="step2-product" class="sv-hidden">
         <p>Select a product</p>
         <select id="product-selector">
           <option value="">Loading products...</option>
         </select>
       </div>
       
-      <div id="step2-category" style="display:none;">
+      <div id="step2-category" class="sv-hidden">
         <p>Select content category</p>
-        <label>
+        <label class="sv-choice">
           <input type="radio" name="content-category" value="meme"> 😂 Meme
         </label>
-        <label>
+        <label class="sv-choice">
           <input type="radio" name="content-category" value="quote"> ✨ Quote
         </label>
       </div>
       
-      <div id="step3-generate" style="display:none;">
-        <br>
-        <button type="button" onclick="generatePostContent()">✨ Generate Content</button>
+      <div id="step3-generate" class="sv-hidden">
+        <button type="button" class="sv-btn sv-btn-primary" onclick="generatePostContent()">Generate content</button>
       </div>
       
-      <div id="step4-preview" style="display:none;">
+      <div id="step4-preview" class="sv-hidden">
         <p>Preview</p>
-        <textarea id="generated-post-text" readonly rows="5" style="width: 100%; box-sizing: border-box;"></textarea>
+        <textarea id="generated-post-text" readonly rows="5"></textarea>
       </div>
       
-      <div id="step5-platforms" style="display:none;">
+      <div id="step5-platforms" class="sv-hidden">
         <p>Select platforms to publish to</p>
-        <label>
+        <label class="sv-checkbox-row">
           <input type="checkbox" id="platform-facebook" checked> 📘 Facebook Pages
         </label>
-        <div id="facebook-pages-list" style="margin-left:20px; display:none;"></div>
+        <div id="facebook-pages-list" class="sv-hidden"></div>
         
-        <br>
-        <label>
+        <label class="sv-checkbox-row">
           <input type="checkbox" id="platform-instagram" checked> 📷 Instagram
         </label>
-        <div id="instagram-accounts-list" style="margin-left:20px; display:none;"></div>
+        <div id="instagram-accounts-list" class="sv-hidden"></div>
       </div>
       
-      <div id="step6-actions" style="display:none;">
-        <br>
-        <button type="button" onclick="publishPost()">📤 Publish</button>
-        <button type="button" onclick="closeCreatePostModal()">Cancel</button>
+      <div id="step6-actions" class="sv-inline-actions sv-hidden">
+        <button type="button" class="sv-btn sv-btn-primary" onclick="publishPost()">Publish</button>
+        <button type="button" class="sv-btn sv-btn-secondary" onclick="closeCreatePostModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -236,9 +181,11 @@ async def post_management(store_id: str):
   function updateAutopilotDisplay() {{
     const statusEl = document.getElementById('autopilot-status');
     if (currentAutopilotState) {{
-      statusEl.textContent = ' ✓ Autopilot is ON';
+      statusEl.className = 'sv-pill sv-pill-success';
+      statusEl.innerHTML = '<span class="sv-dot is-live"></span> Autopilot is on';
     }} else {{
-      statusEl.textContent = ' ✗ Autopilot is OFF';
+      statusEl.className = 'sv-pill sv-pill-neutral';
+      statusEl.textContent = 'Autopilot is off';
     }}
   }}
 
@@ -248,7 +195,7 @@ async def post_management(store_id: str):
       renderPostsList(data.posts, data.autopilot_enabled);
     }} catch(e) {{
       console.error('Error loading posts:', e);
-      document.getElementById('posts-container').innerHTML = '<p>Error loading posts</p>';
+      document.getElementById('posts-container').innerHTML = '<p class="sv-muted">Error loading posts</p>';
     }}
   }}
 
@@ -256,37 +203,41 @@ async def post_management(store_id: str):
     const container = document.getElementById('posts-container');
     
     if (!posts || posts.length === 0) {{
-      container.innerHTML = '<p>No posts yet.</p>';
+      container.innerHTML = '<div class="sv-empty"><span class="sv-empty-icon"><i class="ti ti-photo-off"></i></span><h3>No posts yet</h3><p>Create your first post to start engaging customers across your connected channels.</p></div>';
       return;
     }}
     
     container.innerHTML = posts.map(post => {{
       const statusBadges = [];
-      if (!post.knowledge_updated) statusBadges.push('[Review Knowledge]');
+      if (!post.knowledge_updated) statusBadges.push('<span class="sv-pill sv-pill-warning">Review knowledge</span>');
       if (post.autopilot_paused) {{
-        statusBadges.push('[Paused]');
+        statusBadges.push('<span class="sv-pill sv-pill-warning">Paused</span>');
       }} else if (autopilotEnabled) {{
-        statusBadges.push('[Active]');
+        statusBadges.push('<span class="sv-pill sv-pill-success"><span class="sv-dot is-live"></span> Active</span>');
       }}
       
       return `
-        <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-          <div>
+        <article class="sv-post-card">
+          <div class="sv-post-head">
+            <div class="sv-post-title">
             <input type="checkbox" class="post-checkbox" data-post-id="${{post.post_id}}" onchange="updateSelection()">
-            <strong>${{post.message?.substring(0, 50) || '(No Text)'}}...</strong>
-            <span>${{statusBadges.join(' ')}}</span>
+            <div class="sv-post-copy">
+              <strong>${{post.message?.substring(0, 50) || '(No text)'}}...</strong>
+              <p>${{statusBadges.join(' ')}}</p>
+            </div>
+          </div>
           </div>
           
-          ${{post.image_url ? `<p><img src="${{post.image_url}}" alt="Post image" style="max-width:150px;"></p>` : ''}}
+          ${{post.image_url ? `<div class="sv-media-inline"><img src="${{post.image_url}}" alt="Post image" class="sv-post-thumb"></div>` : ''}}
           
-          <p>${{post.message || ''}}</p>
+          <p class="sv-muted">${{post.message || ''}}</p>
           
-          <div>
-            <button type="button" onclick="showPostDetail('${{post.post_id}}', '${{post.message || ''}}', '${{post.knowledge || ''}}', '${{post.image_url || ''}}', ${{post.comment_count || 0}})">📝 Edit Knowledge</button>
-            <button type="button" onclick="showComments('${{post.post_id}}')">${{post.comment_count}} 💬 Comments</button>
-            <button type="button" onclick="togglePostPause('${{post.post_id}}', ${{post.autopilot_paused}})">${{post.autopilot_paused ? '▶ Resume' : '⏸ Pause'}}</button>
+          <div class="sv-inline-actions">
+            <button type="button" class="sv-btn sv-btn-secondary sv-btn-sm" onclick="showPostDetail('${{post.post_id}}', '${{post.message || ''}}', '${{post.knowledge || ''}}', '${{post.image_url || ''}}', ${{post.comment_count || 0}})">Edit knowledge</button>
+            <button type="button" class="sv-btn sv-btn-ghost sv-btn-sm" onclick="showComments('${{post.post_id}}')">${{post.comment_count}} comments</button>
+            <button type="button" class="sv-btn sv-btn-secondary sv-btn-sm" onclick="togglePostPause('${{post.post_id}}', ${{post.autopilot_paused}})">${{post.autopilot_paused ? 'Resume' : 'Pause'}}</button>
           </div>
-        </div>
+        </article>
       `;
     }}).join('');
   }}
@@ -298,8 +249,8 @@ async def post_management(store_id: str):
     }});
     
     const hasSelection = selectedPostIds.size > 0;
-    document.getElementById('pause-selected-btn').style.display = hasSelection ? 'inline-block' : 'none';
-    document.getElementById('resume-selected-btn').style.display = hasSelection ? 'inline-block' : 'none';
+    document.getElementById('pause-selected-btn').classList.toggle('sv-hidden', !hasSelection);
+    document.getElementById('resume-selected-btn').classList.toggle('sv-hidden', !hasSelection);
     
     const selectAllCheckbox = document.getElementById('select-all-posts');
     const allCheckboxes = document.querySelectorAll('.post-checkbox');
@@ -351,17 +302,18 @@ async def post_management(store_id: str):
   function showPostDetail(postId, message, knowledge, imageUrl, commentCount) {{
     const content = document.getElementById('post-detail-content');
     content.innerHTML = `
-      <p><strong>Post Message:</strong></p>
-      <textarea readonly rows="3" style="width: 100%; box-sizing: border-box;">${{message}}</textarea>
+      <div class="sv-stack">
+      <p><strong>Post message</strong></p>
+      <textarea readonly rows="3">${{message}}</textarea>
       
-      ${{imageUrl ? `<p><img src="${{imageUrl}}" style="max-width:150px;"></p>` : ''}}
+      ${{imageUrl ? `<div class="sv-media-inline"><img src="${{imageUrl}}" class="sv-post-thumb"></div>` : ''}}
       
-      <p><strong>Knowledge Base:</strong></p>
-      <textarea id="knowledge-textarea" rows="5" style="width: 100%; box-sizing: border-box;">${{knowledge || ''}}</textarea>
+      <p><strong>Knowledge base</strong></p>
+      <textarea id="knowledge-textarea" rows="5">${{knowledge || ''}}</textarea>
       
-      <p><button type="button" onclick="saveKnowledge('${{postId}}')">Save Knowledge</button></p>
-      <hr>
-      <p>${{commentCount}} comment(s) <button type="button" onclick="showComments('${{postId}}')">View Comments</button></p>
+      <div class="sv-inline-actions"><button type="button" class="sv-btn sv-btn-primary" onclick="saveKnowledge('${{postId}}')">Save knowledge</button></div>
+      <div class="sv-section-divider"><p>${{commentCount}} comment(s) <button type="button" class="sv-btn sv-btn-ghost sv-btn-sm" onclick="showComments('${{postId}}')">View comments</button></p></div>
+      </div>
     `;
     document.getElementById('modal-title').textContent = 'Edit Post Knowledge';
     document.getElementById('post-detail-modal').style.display = 'block';
@@ -387,14 +339,14 @@ async def post_management(store_id: str):
       const content = document.getElementById('post-detail-content');
       
       if (!data.comments || data.comments.length === 0) {{
-        content.innerHTML = '<p>No comments yet.</p>';
+        content.innerHTML = '<p class="sv-muted">No comments yet.</p>';
       }} else {{
-        content.innerHTML = data.comments.map(comment => `
-          <div style="border-bottom: 1px dashed #ccc; padding: 5px 0;">
+        content.innerHTML = `<div class="sv-stack">${{data.comments.map(comment => `
+          <div class="sv-section-divider">
             <strong>${{comment.sender_name || comment.sender_id}}</strong>: ${{comment.text}}
-            ${{comment.replied ? `<p style="margin-left:20px; color:green;">↳ Bot: ${{comment.reply_text}}</p>` : ''}}
+            ${{comment.replied ? `<p class="sv-muted">Reply: ${{comment.reply_text}}</p>` : ''}}
           </div>
-        `).join('');
+        `).join('')}}</div>`;
       }}
       document.getElementById('modal-title').textContent = 'Comments';
       document.getElementById('post-detail-modal').style.display = 'block';
@@ -410,9 +362,9 @@ async def post_management(store_id: str):
     document.querySelectorAll('[name="post-type"]').forEach(r => r.checked = false);
     document.querySelectorAll('[name="content-category"]').forEach(r => r.checked = false);
     
-    document.getElementById('step1-post-type').style.display = 'block';
+    document.getElementById('step1-post-type').classList.remove('sv-hidden');
     ['step2-product', 'step2-category', 'step3-generate', 'step4-preview', 'step5-platforms', 'step6-actions'].forEach(id => {{
-      document.getElementById(id).style.display = 'none';
+      document.getElementById(id).classList.add('sv-hidden');
     }});
     document.getElementById('create-post-modal').style.display = 'block';
   }}
@@ -436,13 +388,13 @@ async def post_management(store_id: str):
     createPostState.postType = selectedType;
     
     if (selectedType === 'product') {{
-      document.getElementById('step2-product').style.display = 'block';
-      document.getElementById('step2-category').style.display = 'none';
+      document.getElementById('step2-product').classList.remove('sv-hidden');
+      document.getElementById('step2-category').classList.add('sv-hidden');
       loadProducts();
       showNextStep();
     }} else if (selectedType === 'content') {{
-      document.getElementById('step2-product').style.display = 'none';
-      document.getElementById('step2-category').style.display = 'block';
+      document.getElementById('step2-product').classList.add('sv-hidden');
+      document.getElementById('step2-category').classList.remove('sv-hidden');
       showNextStep();
     }}
   }}
@@ -462,12 +414,12 @@ async def post_management(store_id: str):
 
   function showNextStep() {{
     if (createPostState.postType === 'product') {{
-      document.getElementById('step3-generate').style.display = 'block';
+      document.getElementById('step3-generate').classList.remove('sv-hidden');
     }} else if (createPostState.postType === 'content') {{
       document.querySelectorAll('[name="content-category"]').forEach(radio => {{
         radio.onchange = () => {{
           createPostState.category = radio.value;
-          document.getElementById('step3-generate').style.display = 'block';
+          document.getElementById('step3-generate').classList.remove('sv-hidden');
         }};
       }});
     }}
@@ -489,9 +441,9 @@ async def post_management(store_id: str):
       createPostState.generatedText = response.post_text;
       document.getElementById('generated-post-text').value = response.post_text;
       
-      document.getElementById('step4-preview').style.display = 'block';
-      document.getElementById('step5-platforms').style.display = 'block';
-      document.getElementById('step6-actions').style.display = 'block';
+      document.getElementById('step4-preview').classList.remove('sv-hidden');
+      document.getElementById('step5-platforms').classList.remove('sv-hidden');
+      document.getElementById('step6-actions').classList.remove('sv-hidden');
       await loadPlatformOptions();
     }} catch(e) {{ alert('Error: ' + e.message); }}
   }}
@@ -501,8 +453,8 @@ async def post_management(store_id: str):
       const fbData = await fetchJson(`/api/meta/connected-pages/${{storeId}}`);
       const fbList = document.getElementById('facebook-pages-list');
       if (fbData.pages?.length > 0) {{
-        fbList.style.display = 'block';
-        fbList.innerHTML = fbData.pages.map(p => `<label><input type="checkbox" value="${{p.page_id}}" checked class="facebook-page-checkbox" onchange="updateSelectedPages()"> ${{p.page_name}}</label><br>`).join('');
+        fbList.classList.remove('sv-hidden');
+        fbList.innerHTML = fbData.pages.map(p => `<label class="sv-checkbox-row"><input type="checkbox" value="${{p.page_id}}" checked class="facebook-page-checkbox" onchange="updateSelectedPages()"> <span>${{p.page_name}}</span></label>`).join('');
         createPostState.selectedFacebookPages = fbData.pages.map(p => p.page_id);
       }}
     }} catch(e) {{}}
@@ -511,8 +463,8 @@ async def post_management(store_id: str):
       const igData = await fetchJson(`/api/meta/connected-instagram/${{storeId}}`);
       const igList = document.getElementById('instagram-accounts-list');
       if (igData.accounts?.length > 0) {{
-        igList.style.display = 'block';
-        igList.innerHTML = igData.accounts.map(a => `<label><input type="checkbox" value="${{a.ig_user_id}}" checked class="instagram-account-checkbox" onchange="updateSelectedInstagram()"> ${{a.ig_username}}</label><br>`).join('');
+        igList.classList.remove('sv-hidden');
+        igList.innerHTML = igData.accounts.map(a => `<label class="sv-checkbox-row"><input type="checkbox" value="${{a.ig_user_id}}" checked class="instagram-account-checkbox" onchange="updateSelectedInstagram()"> <span>${{a.ig_username}}</span></label>`).join('');
         createPostState.selectedInstagramAccounts = igData.accounts.map(a => a.ig_user_id);
       }}
     }} catch(e) {{}}

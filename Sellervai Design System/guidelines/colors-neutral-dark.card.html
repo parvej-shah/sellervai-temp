@@ -1,0 +1,24 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Neutrals (dark)" subtitle="Opt-in dark theme — cards lift clearly off the page" -->
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    body { margin: 0; padding: 20px; background: var(--sv-bg); display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+    .sw { border-radius: var(--sv-radius-sm); border: 1px solid var(--sv-border); overflow: clip; }
+    .chip { height: 56px; }
+    .meta { padding: 7px 9px; background: var(--sv-surface); }
+    .name { font-size: 11px; font-weight: 600; color: var(--sv-text); }
+    .val { font-size: 10px; color: var(--sv-text-muted); font-family: var(--sv-font-mono); }
+  </style>
+</head>
+<body>
+  <div class="sw"><div class="chip" style="background:var(--sv-bg)"></div><div class="meta"><div class="name">Page</div><div class="val">--sv-bg</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--sv-surface)"></div><div class="meta"><div class="name">Surface</div><div class="val">--sv-surface</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--sv-surface-2)"></div><div class="meta"><div class="name">Raised</div><div class="val">--sv-surface-2</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--sv-border-strong)"></div><div class="meta"><div class="name">Border</div><div class="val">--sv-border-strong</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--sv-text-muted)"></div><div class="meta"><div class="name">Muted</div><div class="val">--sv-text-muted</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--sv-text)"></div><div class="meta"><div class="name">Text</div><div class="val">--sv-text</div></div></div>
+</body>
+</html>

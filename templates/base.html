@@ -1,8 +1,16 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="utf-8" />
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("sv-theme");
+        if (t) document.documentElement.dataset.theme = t;
+      } catch (e) { }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="${self.meta_description()}" />
 
@@ -14,6 +22,12 @@
   <!-- Tabler Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
+  <!-- Fonts: Plus Jakarta Sans (UI) + JetBrains Mono (data) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+
   <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 
@@ -24,19 +38,24 @@
   ${self.extra_head()}
 </head>
 
-<body>
+<body class="${self.body_class()}">
 
   <!-- ── Navigation ─────────────────────────────────────────────── -->
   <nav class="container-fluid sv-nav">
     <ul>
       <li>
         <a href="/" class="sv-brand">
-          <i class="ti ti-robot"></i>
+          <span class="sv-brand-mark"><i class="ti ti-robot"></i></span>
           <strong>Sellervai</strong>
         </a>
       </li>
     </ul>
-    <ul>
+    <ul class="sv-nav-actions">
+      <li>
+        <button id="sv-theme-toggle" class="sv-theme-toggle" aria-label="Toggle theme" type="button">
+          <i class="ti ti-sun"></i><i class="ti ti-moon"></i>
+        </button>
+      </li>
       ${self.nav_items()}
     </ul>
   </nav>
@@ -55,6 +74,18 @@
 
   <!-- Shared auth helpers -->
   <script src="/static/js/auth.js" defer></script>
+  <script>
+    (function () {
+      var btn = document.getElementById("sv-theme-toggle");
+      if (!btn) return;
+      btn.addEventListener("click", function () {
+        var root = document.documentElement;
+        var next = root.dataset.theme === "dark" ? "light" : "dark";
+        root.dataset.theme = next;
+        try { localStorage.setItem("sv-theme", next); } catch (e) { }
+      });
+    })();
+  </script>
 
   ## Per-page extra scripts (override in child templates)
   ${self.extra_scripts()}
@@ -66,6 +97,7 @@
 <%def name="title()">Sellervai</%def>
 <%def name="meta_description()">Sellervai — AI-powered store automation platform.</%def>
 <%def name="extra_head()"></%def>
+<%def name="body_class()"></%def>
 <%def name="nav_items()">
   <li><a href="/login">Sign in</a></li>
 </%def>

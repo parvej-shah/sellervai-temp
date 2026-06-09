@@ -5,8 +5,8 @@
 <%def name="meta_description()">Welcome to Sellervai — your AI-powered store automation platform.</%def>
 
 <%def name="nav_items()">
-  <li><a href="/login">Sign in</a></li>
-  <li><a href="/register" role="button">Get started</a></li>
+  <li><a href="/login" class="sv-btn sv-btn-ghost">Sign in</a></li>
+  <li><a href="/register" class="sv-btn sv-btn-primary">Get started</a></li>
 </%def>
 
 <section class="sv-hero" id="hero">
@@ -21,11 +21,8 @@
       customer support around the clock.
     </p>
     <div class="sv-hero-actions">
-      <a href="/register" role="button" id="cta-register">
+      <a href="/register" class="sv-btn sv-btn-hero" id="cta-register">
         <i class="ti ti-rocket"></i> Start for free
-      </a>
-      <a href="/login" role="button" class="outline" id="cta-login">
-        Sign in
       </a>
     </div>
   </div>

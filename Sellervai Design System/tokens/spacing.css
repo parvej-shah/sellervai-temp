@@ -1,0 +1,44 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Sellervai — Spacing, radius, elevation & motion tokens
+   Built on the existing --sv-radius / --sv-transition basis.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Spacing scale (4px base) ──────────────────────────────────── */
+  --sv-space-1: 0.25rem;   /*  4 */
+  --sv-space-2: 0.5rem;    /*  8 */
+  --sv-space-3: 0.75rem;   /* 12 */
+  --sv-space-4: 1rem;      /* 16 */
+  --sv-space-5: 1.5rem;    /* 24 */
+  --sv-space-6: 2rem;      /* 32 */
+  --sv-space-7: 3rem;      /* 48 */
+  --sv-space-8: 4rem;      /* 64 */
+
+  /* ── Radius scale ──────────────────────────────────────────────── */
+  --sv-radius-sm:   8px;
+  --sv-radius:      12px;   /* default — kept from original tokens */
+  --sv-radius-lg:   18px;
+  --sv-radius-pill: 100px;
+
+  /* ── Elevation / shadows (light) ───────────────────────────────── */
+  --sv-shadow-sm: 0 1px 2px rgba(20, 22, 40, 0.06),
+                  0 1px 3px rgba(20, 22, 40, 0.08);
+  --sv-shadow:    0 2px 4px rgba(20, 22, 40, 0.05),
+                  0 6px 20px rgba(20, 22, 40, 0.08);
+  --sv-shadow-lg: 0 12px 40px rgba(20, 22, 40, 0.14);
+  /* Brand glow — RESERVED for the hero CTA / brand moments only */
+  --sv-shadow-glow: 0 8px 30px rgba(124, 92, 246, 0.35);
+
+  /* ── Motion ────────────────────────────────────────────────────── */
+  --sv-transition:      0.2s ease;        /* @kind other */ /* kept from original tokens */
+  --sv-transition-fast: 0.12s ease; /* @kind other */
+}
+
+[data-theme="dark"] {
+  /* Deeper shadows read against the dark page */
+  --sv-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --sv-shadow:    0 2px 6px rgba(0, 0, 0, 0.35),
+                  0 8px 28px rgba(0, 0, 0, 0.45);
+  --sv-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
+  --sv-shadow-glow: 0 8px 32px rgba(124, 124, 255, 0.40);
+}

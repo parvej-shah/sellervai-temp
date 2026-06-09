@@ -1,0 +1,31 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Form fields" subtitle="Inputs, select, optional marker & validation" -->
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
+  <style>
+    body { margin: 0; padding: 24px; }
+    .sv-form { max-width: 460px; }
+  </style>
+</head>
+<body>
+  <form class="sv-form" onsubmit="return false">
+    <label class="sv-field">
+      <span class="sv-field-label">Email</span>
+      <input class="sv-input" type="email" placeholder="you@example.com" />
+    </label>
+    <label class="sv-field">
+      <span class="sv-field-label">Phone<span class="sv-optional"> (optional)</span></span>
+      <input class="sv-input" type="tel" placeholder="+880…" />
+    </label>
+    <label class="sv-field">
+      <span class="sv-field-label">Password</span>
+      <input class="sv-input is-invalid" type="password" value="123" />
+      <p class="sv-field-error">Password must be at least 8 characters.</p>
+    </label>
+  </form>
+</body>
+</html>

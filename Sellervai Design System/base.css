@@ -1,0 +1,74 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Sellervai — Base element styles
+   Minimal foundation applied on top of Pico. Drives the specimen cards
+   and components in this design system. Production app.css mirrors these.
+   ═══════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--sv-bg);
+  color: var(--sv-text);
+  font-family: var(--sv-font-sans);
+  font-size: var(--sv-fs-base);
+  line-height: var(--sv-lh-normal);
+  font-weight: var(--sv-fw-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--sv-font-sans);
+  color: var(--sv-text);
+  font-weight: var(--sv-fw-bold);
+  line-height: var(--sv-lh-tight);
+  letter-spacing: var(--sv-ls-tight);
+  margin: 0 0 var(--sv-space-3);
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--sv-fs-xl); }
+h2 { font-size: var(--sv-fs-lg); }
+h3 { font-size: var(--sv-fs-md); letter-spacing: var(--sv-ls-normal); }
+
+p { margin: 0 0 var(--sv-space-4); text-wrap: pretty; }
+
+a {
+  color: var(--sv-accent);
+  text-decoration: none;
+  transition: color var(--sv-transition);
+}
+a:hover { color: var(--sv-accent-hover); }
+
+small { font-size: var(--sv-fs-sm); }
+
+code, kbd, samp, pre {
+  font-family: var(--sv-font-mono);
+  font-size: 0.9em;
+}
+
+::selection {
+  background: var(--sv-accent-subtle);
+  color: var(--sv-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--sv-accent);
+  outline-offset: 2px;
+  border-radius: var(--sv-radius-sm);
+}
+
+/* Tabular figures everywhere numbers line up (tables, stat tiles) */
+.sv-tnum { font-variant-numeric: tabular-nums; }
+
+/* Eyebrow / all-caps micro label */
+.sv-eyebrow {
+  font-size: var(--sv-fs-xs);
+  font-weight: var(--sv-fw-semibold);
+  letter-spacing: var(--sv-ls-wide);
+  text-transform: uppercase;
+  color: var(--sv-text-muted);
+}

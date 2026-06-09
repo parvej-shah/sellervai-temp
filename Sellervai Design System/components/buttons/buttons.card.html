@@ -1,0 +1,34 @@
+<!-- @dsCard group="Components" viewport="700x230" name="Buttons" subtitle="Hierarchy, sizes, icons, busy & hero CTA" -->
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
+  <style>
+    body { margin: 0; padding: 24px; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .row:last-child { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <button class="sv-btn sv-btn-primary"><i class="ti ti-check"></i>Primary</button>
+    <button class="sv-btn sv-btn-secondary">Secondary</button>
+    <button class="sv-btn sv-btn-ghost"><i class="ti ti-dots"></i>Ghost</button>
+    <button class="sv-btn sv-btn-danger"><i class="ti ti-plug-off"></i>Disconnect</button>
+    <button class="sv-icon-btn" aria-label="More"><i class="ti ti-dots-vertical"></i></button>
+  </div>
+  <div class="row">
+    <button class="sv-btn sv-btn-primary sv-btn-sm">Small</button>
+    <button class="sv-btn sv-btn-primary">Medium</button>
+    <button class="sv-btn sv-btn-primary sv-btn-lg"><i class="ti ti-rocket"></i>Large</button>
+    <button class="sv-btn sv-btn-primary" aria-busy="true">Saving</button>
+    <button class="sv-btn sv-btn-primary" disabled>Disabled</button>
+  </div>
+  <div class="row">
+    <button class="sv-btn sv-btn-hero"><i class="ti ti-rocket"></i>Hero CTA — gradient + glow</button>
+  </div>
+</body>
+</html>

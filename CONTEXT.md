@@ -1,11 +1,12 @@
 # Project Context — SalesVai Backend
 
-This file summarizes the backend flow, current store-centric naming, and how RAG is implemented so other conversations and contributors can pick up context quickly.
+This file summarizes the backend flow, current store-centric naming, and how RAG is implemented so other conversations and contributors can pick up context quickly. When creating ui components or ui see DESIGN_BRIEF.md file and then see the desing system folder "Sellervai Design System" to use the design.
 
 ## High-level flow
+
 - Incoming requests:
   - API chat requests: handled by `POST /api/chat` and `POST /api/chat/stream` in `app/routes/chat.py`
-  - Platform messages: handled by webhooks in `app/routes/webhooks.py`. 
+  - Platform messages: handled by webhooks in `app/routes/webhooks.py`.
     - **Meta:** A single global webhook (`/api/webhooks/meta`) handles all traffic for Facebook Messenger, Instagram, and WhatsApp. It utilizes `BackgroundTasks` for fast 200 OK responses.
     - **Telegram:** Remains as per-store webhooks.
 - Routes validate user or platform config and obtain an `AsyncSession` from the DB dependency (`app/lib/database.py`).
@@ -13,6 +14,7 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 - The AI layer uses DeepSeek via `ChatOpenAI` and builds prompts with optional RAG context.
 
 ## RAG (Retrieval-Augmented Generation)
+
 - Implemented in `app/lib/rag.py` via the `RAGManager` class.
 - Embeddings: `langchain_community.embeddings.FastEmbedEmbeddings` with `intfloat/multilingual-e5-small`.
 - Vector store: `langchain_community.vectorstores.PGVector`.
@@ -22,6 +24,7 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
   - Uploaded documents are created as `langchain_core.documents.Document` objects.
 
 ## Vector store (PGVector)
+
 - Backed by PostgreSQL using the app's database URL converted to a sync connection string.
 - Collection name: `store_{store_id}`.
 - Write flow: `RAGManager.index_store_data(...)` and `RAGManager.index_file(...)` call `vector_store.add_documents(...)`.
@@ -29,27 +32,31 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 - Startup is kept lighter by loading the embedding backend lazily.
 
 ## Where indexing happens
+
 - Manual/seed indexing: `scripts/seed.py` calls `get_rag_manager(...).index_store_data(..., force=True)` after creating sample data.
 - There is no automatic re-index on product/description updates in the webhook/setup flows—updates must call indexing explicitly or be added later.
 
 ## How chat uses RAG
+
 - `AIService.chat_stream()` pre-fetches RAG context for the user message and appends it to the prompt as `[Knowledge Base Context]`.
 - The RAG import is lazy so chat still starts even if the embedding/vector extras are unavailable locally.
 - For count queries ("how many"), the service also invokes `DatabaseTools.count_products()` and appends `[Live Database Status]` to the prompt.
 
 ## Data split
+
 - PostgreSQL: users, stores, configuration, webhooks, platform tokens (encrypted), and vector storage via PGVector.
 - Meta integration uses multi-tenant lookup tables (`ConnectedPage`, `ConnectedInstagram`, `ConnectedWhatsapp`) tracking individual tokens by page/waba identifiers as well as their display names (e.g. `page_name`, `ig_username`, `name`).
 - Added `Conversation` and `Message` tables for thread tracking and webhook message deduplication.
 - No ChromaDB dependency in the current implementation.
 
 ## Important notes / Recommendations
+
 - Add indexed update triggers (on product/description changes) or a background job to keep PGVector in sync.
 - Consider storing metadata IDs with vectors so replies can include product references/citations.
 - If you want true tool-driven streaming (agent runs tools live and streams results), implement a structured agent loop that can call tools and stream intermediate outputs.
 - The store detail page at `/stores/{store_id}` manages store configuration, products, coupons, orders, and platform connections natively using `/api/store` and `/api/meta` endpoints.
 - The page template uses escaped braces (`{{` and `}}`) for Javascript blocks so the Python f-string stays valid when the route is rendered.
-- **Connection Mechanisms:** 
+- **Connection Mechanisms:**
   - Facebook and Instagram are connected via standard Facebook Login (OAuth) using `FB.login` with expanded scopes (`pages_manage_posts`, `ads_management`, `instagram_manage_comments`, etc.) allowing full control over engagement and ad management.
   - The short-lived user token returned by the frontend is immediately exchanged on the backend for a **long-lived user token** using `grant_type=fb_exchange_token`. This ensures the derived Page Access Tokens are **permanent**.
   - WhatsApp is connected using Meta's official Embedded Signup flow via `FB.login` requiring a backend code exchange.
@@ -57,6 +64,7 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 - **Verification:** Meta webhooks use a single global `META_VERIFY_TOKEN` configured via `.env`. Telegram still utilizes the per-store `verification_token`.
 
 ## Naming Status
+
 - Current active router is `app/routes/store.py` with `/api/store` endpoints.
 - The old `business` router was removed; the codebase should use `store` terminology going forward.
 - Some webhook/setup parameter names still use `store_id` already; docs should stay aligned with that.
@@ -110,7 +118,6 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 ---
 
 File generated for quick context in conversations and developer onboarding.
-
 
 WEBHOOK_URL: https://neural-raising-hugh-holdem.trycloudflare.com/api/webhooks/meta
 VERIFY_TOKEN: sellervai_meta_webhook_token
