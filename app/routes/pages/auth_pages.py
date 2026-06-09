@@ -6,11 +6,6 @@ from app.lib.config import settings
 
 router = APIRouter()
 
-
-# NOTE: The "/" route is now handled by home_pages.py (Mako template).
-# Auth routes start from /login onward.
-
-
 @router.get("/login", response_class=HTMLResponse, include_in_schema=False)
 async def login_page():
     """Login page — email/password form + Google Sign-In button."""

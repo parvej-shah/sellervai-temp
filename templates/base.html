@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,16 +9,10 @@
   <title>${self.title()} — Sellervai</title>
 
   <!-- Pico CSS (classless dark-mode ready) -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-  />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
 
   <!-- Tabler Icons -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
-  />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
   <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
@@ -28,6 +23,7 @@
   ## Per-page extra head content (override in child templates)
   ${self.extra_head()}
 </head>
+
 <body>
 
   <!-- ── Navigation ─────────────────────────────────────────────── -->
@@ -64,6 +60,7 @@
   ${self.extra_scripts()}
 
 </body>
+
 </html>
 
 <%def name="title()">Sellervai</%def>
