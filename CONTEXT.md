@@ -61,6 +61,32 @@ This file summarizes the backend flow, current store-centric naming, and how RAG
 - The old `business` router was removed; the codebase should use `store` terminology going forward.
 - Some webhook/setup parameter names still use `store_id` already; docs should stay aligned with that.
 
+## Server-side page rendering (Mako + HTMX + Pico CSS)
+
+- **Template engine**: [Mako](https://www.makotemplates.org/) — compiled Python templates with inheritance.
+- **Helper**: `app/lib/templates.py` exposes `render_template(name, **ctx) -> HTMLResponse`.
+  - Uses `TemplateLookup` pointed at the `templates/` directory in the project root.
+  - Compiled `.pyc` modules cached in `/tmp/mako_modules`.
+- **Template directory**: `templates/`
+  - `base.html` — base layout; all pages do `<%inherit file="base.html"/>`.
+  - Child templates override named defs: `extra_head`, `nav_items`, `extra_scripts`.
+- **CDN libraries loaded in `base.html`**:
+  - **Pico CSS v2** — `https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css`
+  - **Tabler Icons** — `https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css`
+  - **HTMX v2** — `https://unpkg.com/htmx.org@2.0.4`
+- **Shared static assets** served from `/static/`:
+  - `static/css/app.css` — custom design tokens and component styles.
+  - `static/js/auth.js` — `getToken`, `fetchJson`, `ensureSessionOrRedirect`, etc.
+- **Adding a new page**:
+  1. Create `templates/<page>.html` with `<%inherit file="base.html"/>`.
+  2. Create or extend a route file in `app/routes/pages/`.
+  3. Call `render_template("<page>.html", **kwargs)` and return the result.
+  4. Register the router in `app/routes/pages/__init__.py`.
+- **HTMX usage**: Use `hx-get`, `hx-post`, `hx-swap`, `hx-trigger` attributes directly in templates.
+  No build step needed — all updates happen over fetch without full-page reload.
+- **Route ownership**: `GET /` is served by `app/routes/pages/home_pages.py`.
+  Auth routes (`/login`, `/register`) remain in `auth_pages.py`.
+
 ---
 
 File generated for quick context in conversations and developer onboarding.

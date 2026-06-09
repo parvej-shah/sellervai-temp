@@ -1,0 +1,203 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Sellervai — Shared app styles
+   Stack: Pico CSS v2 (base) + custom design tokens
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Design tokens ──────────────────────────────────────────────── */
+:root {
+  --sv-accent:        #7c6aff;
+  --sv-accent-hover:  #6355e0;
+  --sv-surface:       #1a1a2e;
+  --sv-surface-2:     #16213e;
+  --sv-border:        rgba(255,255,255,0.08);
+  --sv-text-muted:    rgba(255,255,255,0.5);
+  --sv-radius:        12px;
+  --sv-transition:    0.2s ease;
+}
+
+/* ── Global overrides ───────────────────────────────────────────── */
+body {
+  background: var(--sv-surface);
+  min-height: 100vh;
+}
+
+a {
+  color: var(--sv-accent);
+  transition: color var(--sv-transition);
+}
+a:hover { color: var(--sv-accent-hover); }
+
+[role="button"], button {
+  transition: transform var(--sv-transition), box-shadow var(--sv-transition);
+}
+[role="button"]:hover:not(:disabled),
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(124,106,255,0.35);
+}
+
+/* ── Navigation ─────────────────────────────────────────────────── */
+.sv-nav {
+  border-bottom: 1px solid var(--sv-border);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(26,26,46,0.85);
+}
+
+.sv-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff !important;
+  text-decoration: none;
+}
+.sv-brand i { color: var(--sv-accent); font-size: 1.4rem; }
+
+/* ── Main & Footer ──────────────────────────────────────────────── */
+.sv-main  { padding-top: 3rem; padding-bottom: 4rem; }
+.sv-footer {
+  text-align: center;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--sv-border);
+  color: var(--sv-text-muted);
+}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+.sv-hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 3rem;
+  padding: 4rem 0 5rem;
+}
+
+.sv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(124,106,255,0.15);
+  border: 1px solid rgba(124,106,255,0.35);
+  color: var(--sv-accent);
+  padding: 0.3rem 0.75rem;
+  border-radius: 100px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.sv-hero h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+.sv-hero h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--sv-accent), #b06cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sv-hero p {
+  font-size: 1.1rem;
+  color: var(--sv-text-muted);
+  max-width: 520px;
+  margin-bottom: 2rem;
+}
+
+.sv-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.sv-hero-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sv-hero-icon {
+  font-size: 9rem;
+  color: var(--sv-accent);
+  opacity: 0.15;
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-18px); }
+}
+
+/* ── Section title ──────────────────────────────────────────────── */
+.sv-section-title {
+  text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 2.5rem;
+}
+
+/* ── Feature grid ───────────────────────────────────────────────── */
+.sv-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 4rem;
+}
+
+.sv-feature-card {
+  background: var(--sv-surface-2);
+  border: 1px solid var(--sv-border);
+  border-radius: var(--sv-radius);
+  padding: 1.5rem;
+  transition: border-color var(--sv-transition), transform var(--sv-transition);
+}
+.sv-feature-card:hover {
+  border-color: var(--sv-accent);
+  transform: translateY(-3px);
+}
+.sv-feature-icon {
+  font-size: 2rem;
+  color: var(--sv-accent);
+  margin-bottom: 0.75rem;
+  display: block;
+}
+.sv-feature-card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+.sv-feature-card p {
+  font-size: 0.9rem;
+  color: var(--sv-text-muted);
+  margin: 0;
+}
+
+/* ── Status widget ──────────────────────────────────────────────── */
+.sv-status-box {
+  background: var(--sv-surface-2);
+  border: 1px solid var(--sv-border);
+  border-radius: var(--sv-radius);
+  padding: 1.25rem 1.5rem;
+  font-size: 0.92rem;
+  color: var(--sv-text-muted);
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .sv-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    padding: 2.5rem 0 3rem;
+  }
+  .sv-hero-visual { display: none; }
+  .sv-hero-actions { justify-content: center; }
+  .sv-hero p { margin-inline: auto; }
+}

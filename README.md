@@ -1,56 +1,73 @@
-# Bizzz Backend API
+# Sellervai Backend
 
-Multi-platform messaging integration with AI-powered chat capabilities using FastAPI, LangChain, and Google Gemini.
+Multi-platform AI-powered store automation — FastAPI backend with Mako server-side rendering, HTMX partial updates, Pico CSS, and Tabler Icons.
 
 ## Features
 
-- 🔐 **OAuth Authentication** - Secure user authentication with JWT tokens
-- 💬 **Multi-Platform Integration** - WhatsApp, Telegram, Messenger, Instagram, Facebook Pages
-- 🤖 **AI-Powered Chat** - LangChain with Google Gemini for intelligent responses
-- 📊 **Database Management** - PostgreSQL with SQLAlchemy and Alembic migrations
-- 🧠 **Vector Search** - PGVector-backed RAG with FastEmbed embeddings
-- 🔄 **Webhook Handling** - Automated message processing and responses
-- 📡 **Streaming Chat** - Real-time AI responses
-- 🛠️ **RAG & Tools** - Context-aware responses with database queries
+- 🔐 **OAuth Authentication** — JWT-based user sessions
+- 💬 **Multi-Platform Messaging** — WhatsApp, Telegram, Messenger, Instagram, Facebook Pages
+- 🤖 **AI-Powered Chat** — DeepSeek via LangChain with RAG context
+- 📊 **PostgreSQL + PGVector** — Data + vector storage in one database
+- 🧠 **RAG** — FastEmbed embeddings + PGVector similarity search
+- 🔄 **Webhooks** — Global Meta webhook + per-store Telegram
+- 📡 **Streaming Chat** — SSE real-time AI responses
+- 🖥️ **Server-Side Pages** — Mako templates + HTMX + Pico CSS + Tabler Icons
 
 ## Technology Stack
 
-- **FastAPI** - Modern, fast web framework
-- **SQLAlchemy** - Async ORM
-- **PostgreSQL** - Primary database
-- **PGVector** - Vector storage for retrieval-augmented generation
-- **Alembic** - Database migrations
-- **LangChain** - AI orchestration
-- **FastEmbed** - Lightweight local embeddings
-- **DeepSeek** - LLM provider
-- **OAuth 2.0** - Authentication
+| Layer | Technology |
+|---|---|
+| Framework | FastAPI |
+| ORM | SQLAlchemy (async) |
+| DB | PostgreSQL + PGVector |
+| Migrations | Alembic |
+| AI | DeepSeek via LangChain |
+| Embeddings | FastEmbed (`intfloat/multilingual-e5-small`) |
+| Templates | **Mako** (server-side HTML) |
+| Frontend CSS | **Pico CSS v2** (CDN) |
+| Frontend UX | **HTMX v2** (CDN, no-reload updates) |
+| Icons | **Tabler Icons** (CDN) |
+| Auth | OAuth 2.0 + JWT |
 
 ## Project Structure
 
 ```
-bizzz-backend/
+sellervai-backend/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI application
-│   ├── config.py            # Configuration settings
-│   ├── database.py          # Database setup
-│   ├── models.py            # SQLAlchemy models
-│   ├── schemas.py           # Pydantic schemas
-│   ├── auth.py              # Authentication utilities
-│   ├── ai_service.py        # AI/LangChain service
+│   ├── main.py                      # FastAPI app + middleware + routers
+│   ├── lib/
+│   │   ├── database.py              # Async DB session
+│   │   ├── config.py                # Settings (pydantic-settings)
+│   │   ├── rag.py                   # RAGManager (PGVector + FastEmbed)
+│   │   └── templates.py            # Mako TemplateLookup helper
 │   ├── routes/
-│   │   ├── auth.py          # Authentication endpoints
-│   │   ├── store.py         # Store CRUD
-│   │   ├── users.py         # User CRUD
-│   │   ├── chat.py          # Chat endpoints
-│   │   ├── setup.py         # Platform setup
-│   │   └── webhooks.py      # Webhook handlers
-│   └── services/
-│       └── message_processor.py  # Message processing
-├── alembic/                 # Database migrations
+│   │   ├── pages/                   # Server-rendered HTML pages
+│   │   │   ├── __init__.py          # Aggregates all page routers
+│   │   │   ├── home_pages.py        # GET / (Mako homepage)
+│   │   │   ├── auth_pages.py        # /login, /register
+│   │   │   ├── dashboard_pages.py   # /dashboard
+│   │   │   ├── store_pages.py       # /stores/{id}
+│   │   │   └── store_post_management.py
+│   │   ├── auth.py                  # /api/auth/*
+│   │   ├── store.py                 # /api/store/*
+│   │   ├── chat.py                  # /api/chat/*
+│   │   ├── webhooks.py              # /api/webhooks/*
+│   │   └── meta_connect.py          # /api/meta/*
+│   ├── models/                      # SQLAlchemy models
+│   ├── schemas/                     # Pydantic schemas
+│   ├── services/                    # Business logic
+│   └── ai/                          # LangChain + DeepSeek service
+├── templates/                       # Mako HTML templates
+│   ├── base.html                    # Base layout (Pico + HTMX + Tabler Icons)
+│   └── index.html                   # Homepage
+├── static/
+│   ├── css/app.css                  # Shared app styles
+│   ├── js/auth.js                   # Shared auth helpers
+│   └── favicon.ico
+├── alembic/                         # DB migrations
 ├── requirements.txt
 ├── .env.example
-├── V1.0.md                  # Project requirements
+├── CONTEXT.md                       # Architecture quick-reference
 └── README.md
 ```
 

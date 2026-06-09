@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="${self.meta_description()}" />
+
+  <title>${self.title()} — Sellervai</title>
+
+  <!-- Pico CSS (classless dark-mode ready) -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+  />
+
+  <!-- Tabler Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+  />
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+
+  <!-- Shared app styles -->
+  <link rel="stylesheet" href="/static/css/app.css" />
+
+  ## Per-page extra head content (override in child templates)
+  ${self.extra_head()}
+</head>
+<body>
+
+  <!-- ── Navigation ─────────────────────────────────────────────── -->
+  <nav class="container-fluid sv-nav">
+    <ul>
+      <li>
+        <a href="/" class="sv-brand">
+          <i class="ti ti-robot"></i>
+          <strong>Sellervai</strong>
+        </a>
+      </li>
+    </ul>
+    <ul>
+      ${self.nav_items()}
+    </ul>
+  </nav>
+
+  <!-- ── Main content ───────────────────────────────────────────── -->
+  <main class="container sv-main">
+    ${self.body()}
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────────── -->
+  <footer class="container sv-footer">
+    <small>
+      &copy; ${2025} Sellervai &mdash; AI-powered store automation
+    </small>
+  </footer>
+
+  <!-- Shared auth helpers -->
+  <script src="/static/js/auth.js" defer></script>
+
+  ## Per-page extra scripts (override in child templates)
+  ${self.extra_scripts()}
+
+</body>
+</html>
+
+<%def name="title()">Sellervai</%def>
+<%def name="meta_description()">Sellervai — AI-powered store automation platform.</%def>
+<%def name="extra_head()"></%def>
+<%def name="nav_items()">
+  <li><a href="/login">Sign in</a></li>
+</%def>
+<%def name="extra_scripts()"></%def>

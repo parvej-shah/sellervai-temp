@@ -1,0 +1,104 @@
+<%inherit file="base.html" />
+
+<%def name="title()">Home</%def>
+
+<%def name="meta_description()">Welcome to Sellervai — your AI-powered store automation platform.</%def>
+
+<%def name="nav_items()">
+  <li><a href="/login">Sign in</a></li>
+  <li><a href="/register" role="button">Get started</a></li>
+</%def>
+
+## ── Hero ──────────────────────────────────────────────────────────
+<section class="sv-hero" id="hero">
+  <div class="sv-hero-content">
+    <span class="sv-badge">
+      <i class="ti ti-sparkles"></i> AI-Powered
+    </span>
+    <h1>Automate your store with&nbsp;<em>intelligent</em>&nbsp;AI</h1>
+    <p>
+      Sellervai connects your store to WhatsApp, Facebook, Instagram, and
+      Telegram — letting your AI assistant handle messages, orders, and
+      customer support around the clock.
+    </p>
+    <div class="sv-hero-actions">
+      <a href="/register" role="button" id="cta-register">
+        <i class="ti ti-rocket"></i> Start for free
+      </a>
+      <a href="/login" role="button" class="outline" id="cta-login">
+        Sign in
+      </a>
+    </div>
+  </div>
+  <div class="sv-hero-visual" aria-hidden="true">
+    <i class="ti ti-robot sv-hero-icon"></i>
+  </div>
+</section>
+
+## ── Feature grid ──────────────────────────────────────────────────
+<section id="features">
+  <h2 class="sv-section-title">Everything you need to sell smarter</h2>
+  <div class="sv-feature-grid">
+
+    <article class="sv-feature-card">
+      <i class="ti ti-messages sv-feature-icon"></i>
+      <h3>Multi-platform messaging</h3>
+      <p>Handle WhatsApp, Messenger, Instagram DMs, and Telegram from one unified inbox.</p>
+    </article>
+
+    <article class="sv-feature-card">
+      <i class="ti ti-brain sv-feature-icon"></i>
+      <h3>AI chat assistant</h3>
+      <p>DeepSeek-powered AI answers questions, suggests products, and closes sales 24/7.</p>
+    </article>
+
+    <article class="sv-feature-card">
+      <i class="ti ti-database sv-feature-icon"></i>
+      <h3>Smart knowledge base</h3>
+      <p>Upload PDFs, product lists, and docs — the AI learns your catalogue automatically.</p>
+    </article>
+
+    <article class="sv-feature-card">
+      <i class="ti ti-chart-bar sv-feature-icon"></i>
+      <h3>Live dashboard</h3>
+      <p>Monitor conversations, orders, and performance metrics in real time with HTMX updates.</p>
+    </article>
+
+    <article class="sv-feature-card">
+      <i class="ti ti-plug-connected sv-feature-icon"></i>
+      <h3>One-click integrations</h3>
+      <p>Connect Facebook, Instagram, and WhatsApp via OAuth in seconds — no API keys needed.</p>
+    </article>
+
+    <article class="sv-feature-card">
+      <i class="ti ti-lock sv-feature-icon"></i>
+      <h3>Secure & private</h3>
+      <p>All tokens are encrypted at rest. Your data never leaves your own database.</p>
+    </article>
+
+  </div>
+</section>
+
+## ── HTMX live status widget ───────────────────────────────────────
+<section id="status-section">
+  <h2 class="sv-section-title">Platform status</h2>
+  <div id="platform-status" hx-get="/health" hx-trigger="load, every 30s" hx-swap="innerHTML" class="sv-status-box">
+    <span aria-busy="true">Checking status…</span>
+  </div>
+</section>
+
+<%def name="extra_scripts()">
+  <script>
+  ## Redirect authenticated users straight to the dashboard
+      (function () {
+        const token = localStorage.getItem("bizzz_token");
+        if (token) {
+          fetch("/api/auth/session", {
+            headers: { Authorization: "Bearer " + token },
+          })
+            .then((r) => { if (r.ok) window.location.href = "/dashboard"; })
+            .catch(() => { });
+        }
+      })();
+  </script>
+</%def>

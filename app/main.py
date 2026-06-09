@@ -100,9 +100,7 @@ def ping_endpoint():
     return {"status": "alive", "message": "Keep-alive request received successfully!"}
 
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to your persistent FastAPI application!"}
+# "/" is served by pages router (Mako homepage — see app/routes/pages/home_pages.py)
 
 
 @app.get("/favicon.ico", include_in_schema=False)
